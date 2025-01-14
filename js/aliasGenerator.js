@@ -106,3 +106,46 @@ AliasGenerator.prototype.generateCombinedAliases = function(username, domain) {
     }
   }
 };
+/**
+ * Main method to generate all types of aliases
+ */
+AliasGenerator.prototype.generateAliases = function(email) {
+  // Split email into username and domain
+  const [username, domain] = email.split('@');
+  
+  // Clear previous aliases
+  this.allAliases = { dot: [], plus: [], domain: [], combined: [] };
+  
+  // Generate each type of alias
+  this.generateDotAliases(username, domain);
+  this.generatePlusAliases(username, domain);
+  this.generateDomainAliases(username, domain);
+  this.generateCombinedAliases(username, domain);
+  
+  // Return the result with counts
+  return {
+    aliases: this.allAliases,
+    counts: {
+      dot: this.allAliases.dot.length,
+      plus: this.allAliases.plus.length,
+      domain: this.allAliases.domain.length,
+      combined: this.allAliases.combined.length,
+      total: this.allAliases.dot.length + this.allAliases.plus.length + 
+             this.allAliases.domain.length + this.allAliases.combined.length
+    }
+  };
+};
+
+/**
+ * Get filtered aliases based on selected options
+ */
+AliasGenerator.prototype.getFilteredAliases = function(filters) {
+  let result = [];
+  
+  if (filters.dot) result = result.concat(this.allAliases.dot);
+  if (filters.plus) result = result.concat(this.allAliases.plus);
+  if (filters.domain) result = result.concat(this.allAliases.domain);
+  if (filters.combined) result = result.concat(this.allAliases.combined);
+  
+  return result;
+};
