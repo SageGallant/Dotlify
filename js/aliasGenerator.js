@@ -74,3 +74,35 @@ AliasGenerator.prototype.generateDomainAliases = function(username, domain) {
   // Generate aliases with alternative domains
   this.allAliases.domain = alternatives.map(alt => `${username}@${alt}`);
 };
+/**
+ * Generate combined method aliases (dot+plus, dot+domain, etc.)
+ */
+AliasGenerator.prototype.generateCombinedAliases = function(username, domain) {
+  const clean = username.replace(/\./g, "");
+  const alternatives = this.domainAlternatives[domain] || [];
+  this.allAliases.combined = [];
+  
+  // Generate a limited set of combined aliases for demonstration
+  // Combine dot method with plus method
+  if (clean.length > 1) {
+    const dotVariations = [
+      clean.substring(0, 1) + '.' + clean.substring(1),
+      clean.charAt(0) + '.' + clean.substring(1, clean.length - 1) + '.' + clean.charAt(clean.length - 1)
+    ];
+    
+    // Add dot+plus combinations
+    for (const dotVar of dotVariations) {
+      for (let i = 0; i < 3; i++) { // Limit to 3 plus tags
+        const tag = this.plusTags[i];
+        this.allAliases.combined.push(`${dotVar}+${tag}@${domain}`);
+      }
+    }
+    
+    // Add dot+domain combinations
+    for (const dotVar of dotVariations) {
+      for (const alt of alternatives) {
+        this.allAliases.combined.push(`${dotVar}@${alt}`);
+      }
+    }
+  }
+};
