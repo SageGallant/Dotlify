@@ -20,3 +20,18 @@
   --transition-slow: 0.5s ease;
   --glow-primary: 0 0 15px rgba(138, 43, 226, 0.4);
 }
+/* Dark mode overrides */
+.dark-mode {
+  --bg-main: #111111;
+  --text-primary: #f8f8f8;
+  --text-secondary: #e0e0e0;
+  --text-muted: #a0a0a0;
+}
+
+/* Body styling */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-main);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
