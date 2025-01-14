@@ -49,3 +49,18 @@ AliasGenerator.prototype.generateDotAliases = function(username, domain) {
   const combinations = generateCombinations(clean, 0, []);
   this.allAliases.dot = combinations.map(username => `${username}@${domain}`);
 };
+/**
+ * Generate plus-method aliases
+ */
+AliasGenerator.prototype.generatePlusAliases = function(username, domain) {
+  // Remove any existing plus tags
+  const clean = username.split('+')[0];
+  
+  // Generate aliases with predefined plus tags
+  this.allAliases.plus = this.plusTags.map(tag => `${clean}+${tag}@${domain}`);
+  
+  // Add a numbered series of plus tags
+  for (let i = 1; i <= 10; i++) {
+    this.allAliases.plus.push(`${clean}+${i}@${domain}`);
+  }
+};
