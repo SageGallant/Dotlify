@@ -64,3 +64,13 @@ AliasGenerator.prototype.generatePlusAliases = function(username, domain) {
     this.allAliases.plus.push(`${clean}+${i}@${domain}`);
   }
 };
+/**
+ * Generate domain-method aliases using domain alternatives
+ */
+AliasGenerator.prototype.generateDomainAliases = function(username, domain) {
+  // Check if we have alternatives for this domain
+  const alternatives = this.domainAlternatives[domain] || [];
+  
+  // Generate aliases with alternative domains
+  this.allAliases.domain = alternatives.map(alt => `${username}@${alt}`);
+};
