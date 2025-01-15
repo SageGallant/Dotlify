@@ -325,3 +325,90 @@ body {
     height: 60px;
   }
 }
+/* Background elements */
+.background-elements {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.3;
+  filter: blur(40px);
+  animation: float 15s infinite ease-in-out;
+}
+
+.circle-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--primary-light), var(--primary-dark));
+  top: 10%;
+  left: 10%;
+  animation-delay: -2s;
+}
+
+.circle-2 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--secondary-color), var(--primary-color));
+  top: 50%;
+  right: 15%;
+  animation-delay: -5s;
+}
+
+.circle-3 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, var(--accent-color), var(--primary-light));
+  bottom: 10%;
+  left: 20%;
+  animation-delay: -7s;
+}
+
+.circle-4 {
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, var(--primary-light), var(--secondary-color));
+  top: 30%;
+  left: 60%;
+  animation-delay: -11s;
+}
+
+.circle-5 {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, var(--accent-color), var(--primary-color));
+  bottom: 30%;
+  right: 5%;
+  animation-delay: -3s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(5%, 5%) scale(1.05);
+  }
+  50% {
+    transform: translate(2%, -5%) scale(0.95);
+  }
+  75% {
+    transform: translate(-5%, 2%) scale(1.02);
+  }
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-main), rgba(138, 43, 226, 0.05));
+  min-height: 100vh;
+}
+
+.dark-mode body {
+  background: linear-gradient(135deg, var(--bg-main), rgba(138, 43, 226, 0.15));
+}
