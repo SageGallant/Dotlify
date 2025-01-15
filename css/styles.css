@@ -131,3 +131,53 @@ body {
 .theme-toggle:active {
   transform: scale(0.95);
 }
+/* Filter and option styles */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filter-group label {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.filter-group label:hover {
+  background-color: rgba(138, 43, 226, 0.05);
+}
+
+.form-checkbox {
+  border-radius: 0.25rem;
+  border: 1px solid var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.form-checkbox:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Section headers and toggles */
+.section-header {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+  margin-bottom: 0.75rem;
+}
+
+.section-toggle {
+  transition: transform var(--transition-fast);
+}
+
+.section-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+@media (max-width: 768px) {
+  .section-content.collapsed {
+    display: none;
+  }
+}
