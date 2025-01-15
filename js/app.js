@@ -24,3 +24,47 @@ document.addEventListener("DOMContentLoaded", () => {
     // More logic to be added
   }
 });
+/**
+ * Theme toggle functionality
+ */
+function initializeTheme() {
+  const themeToggle = document.getElementById('theme-toggle');
+  const sunIcon = document.getElementById('sun-icon');
+  const moonIcon = document.getElementById('moon-icon');
+  
+  // Check for saved theme preference or use OS preference
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
+    document.documentElement.classList.add('dark-mode');
+    sunIcon.classList.add('hidden');
+    moonIcon.classList.remove('hidden');
+  }
+  
+  // Add toggle functionality
+  themeToggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark-mode');
+    sunIcon.classList.toggle('hidden');
+    moonIcon.classList.toggle('hidden');
+    
+    // Save the preference
+    if (document.documentElement.classList.contains('dark-mode')) {
+      localStorage.setItem('theme', 'dark');
+      showToast('Switched to dark theme');
+    } else {
+      localStorage.setItem('theme', 'light');
+      showToast('Switched to light theme');
+    }
+  });
+}
+
+// Add initialization to DOMContentLoaded
+document.addEventListener("DOMContentLoaded", () => {
+  // Existing DOM element references...
+  
+  // Initialize theme
+  initializeTheme();
+  
+  // Existing event listeners...
+});
