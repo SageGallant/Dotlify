@@ -83,3 +83,24 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* Toast notification */
+#toast {
+  z-index: 50;
+  max-width: 90%;
+  animation-fill-mode: forwards;
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  opacity: 0;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.toast-visible {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+}
