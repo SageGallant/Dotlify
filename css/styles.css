@@ -412,3 +412,60 @@ body {
 .dark-mode body {
   background: linear-gradient(135deg, var(--bg-main), rgba(138, 43, 226, 0.15));
 }
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  .text-center-mobile {
+    text-align: center;
+  }
+  
+  .pagination-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  #page-numbers {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  #prev-page, #next-page {
+    min-width: 80px;
+  }
+  
+  .theme-toggle {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  main {
+    padding: 1rem;
+  }
+  
+  .filter-group label {
+    padding: 0.625rem 0.5rem;
+  }
+  
+  .options-container, .export-container {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(138, 43, 226, 0.1);
+    margin-bottom: 0.75rem;
+  }
+  
+  /* Make sure section headers are clickable on mobile */
+  .section-header {
+    cursor: pointer;
+  }
+}
+
+/* Hide pagination elements on very small screens */
+@media (max-width: 360px) {
+  .pagination-ellipsis {
+    display: none;
+  }
+}
