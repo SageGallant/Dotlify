@@ -469,3 +469,42 @@ body {
     display: none;
   }
 }
+/* Alias count badge styling */
+.alias-count {
+  display: inline-block;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.25rem;
+  background-color: rgba(138, 43, 226, 0.1);
+  color: var(--primary-color);
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.5rem;
+  transition: all var(--transition-fast);
+}
+
+.filter-group label:hover .alias-count {
+  background-color: rgba(138, 43, 226, 0.2);
+}
+
+/* Color variations for different alias types */
+#dot-count {
+  background-color: rgba(138, 43, 226, 0.1);
+}
+
+#plus-count {
+  background-color: rgba(0, 206, 209, 0.1);
+  color: var(--secondary-color);
+}
+
+#domain-count {
+  background-color: rgba(255, 215, 0, 0.1);
+  color: var(--accent-color);
+}
+
+#combined-count {
+  background-color: rgba(255, 165, 0, 0.1);
+  color: orange;
+}
