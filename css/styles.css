@@ -508,3 +508,84 @@ body {
   background-color: rgba(255, 165, 0, 0.1);
   color: orange;
 }
+/* Frost glass effect styling */
+main, .options-container, .export-container, .export-btn {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+}
+
+main {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(138, 43, 226, 0.1);
+}
+
+.dark-mode main {
+  background: rgba(15, 15, 15, 0.5);
+}
+
+.options-container, .export-container {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .options-container, 
+.dark-mode .export-container {
+  background: rgba(30, 30, 30, 0.3);
+}
+
+/* Create glass effect for alias items */
+.alias-item {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .alias-item {
+  background: rgba(30, 30, 30, 0.3);
+}
+
+/* Controls container glass effect */
+.controls-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px) saturate(180%);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .controls-container {
+  background: rgba(30, 30, 30, 0.3);
+}
+
+/* Make input fields glass-like */
+input[type="email"], select, .btn-outline {
+  backdrop-filter: blur(8px) saturate(180%);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.dark-mode input[type="email"], .dark-mode select, .dark-mode .btn-outline {
+  background: rgba(30, 30, 30, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Toast notification with frost glass effect */
+#toast {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px 0 rgba(138, 43, 226, 0.15);
+}
+
+.dark-mode #toast {
+  background: rgba(30, 30, 30, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px 0 rgba(138, 43, 226, 0.2);
+}
