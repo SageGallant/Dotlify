@@ -715,3 +715,10 @@ function debounce(func, wait) {
     timeout = setTimeout(() => func.apply(context, args), wait);
   };
 }
+// Remove statistics functionality to simplify the UI
+// Previous code included:
+// - updateCounts function that tracked total aliases
+// - DOM elements for displaying counts
+// - Functions for calculating statistics
+
+// This commit removes those elements to create a cleaner, more focused interface
