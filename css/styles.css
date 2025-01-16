@@ -711,3 +711,10 @@ body {
     }
   }
 }
+/* Make toast notifications properly transparent */
+#toast {
+  background: rgba(30, 30, 30, 0.7) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
