@@ -784,3 +784,56 @@ function updateAliasCounts(counts) {
     });
   }
 }
+/**
+ * Add keyboard shortcuts for common actions
+ */
+function initializeKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Only process if not in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+      return;
+    }
+    
+    // Ctrl+G: Focus on email input
+    if (e.ctrlKey && e.key === 'g') {
+      e.preventDefault();
+      document.getElementById('base-email').focus();
+    }
+    
+    // If results are shown, add more shortcuts
+    if (!document.getElementById('results-section').classList.contains('hidden')) {
+      // Right arrow: Next page
+      if (e.key === 'ArrowRight') {
+        const nextBtn = document.getElementById('next-page');
+        if (!nextBtn.disabled) {
+          nextBtn.click();
+        }
+      }
+      
+      // Left arrow: Previous page
+      if (e.key === 'ArrowLeft') {
+        const prevBtn = document.getElementById('prev-page');
+        if (!prevBtn.disabled) {
+          prevBtn.click();
+        }
+      }
+      
+      // R key: Randomize
+      if (e.key === 'r') {
+        document.getElementById('randomize-btn').click();
+      }
+      
+      // C key: Copy all
+      if (e.key === 'c') {
+        document.getElementById('copy-all-btn').click();
+      }
+    }
+  });
+}
+
+// Add to initialization
+document.addEventListener("DOMContentLoaded", () => {
+  // Existing initialization...
+  
+  initializeKeyboardShortcuts();
+});
