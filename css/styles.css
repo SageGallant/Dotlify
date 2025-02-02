@@ -60,9 +60,9 @@
   --text-secondary: #e0e0e0; /* Light gray */
   --text-muted: #ababab; /* Medium gray */
 
-  --bg-main: #111111; /* Near black */
-  --bg-card: #1e1e1e; /* Very dark gray */
-  --bg-muted: #2d2d2d; /* Dark gray */
+  --bg-main: #1a1a2e; /* Dark blue-purple instead of near black */
+  --bg-card: #242449; /* Dark blue instead of very dark gray */
+  --bg-muted: #2a2a5a; /* Deep blue instead of dark gray */
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -201,22 +201,23 @@ html.dark-mode,
 .dark-mode section,
 .dark-mode footer,
 .dark-mode header {
-  background-color: transparent; /* Let the body background show through */
+  background-color: transparent;
+  color: var(--text-primary);
 }
 
-/* Specific styling for elements that should have the card background */
 .dark-mode main {
-  background-color: var(--bg-card);
+  background-color: rgba(36, 36, 73, 0.5) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-/* Override any white backgrounds with !important */
 .dark-mode .bg-white,
 .dark-mode [class*="bg-white"],
 .dark-mode .bg-gray-50,
 .dark-mode [class*="bg-gray-50"],
 .dark-mode .bg-gray-100,
 .dark-mode [class*="bg-gray-100"] {
-  background-color: var(--bg-main) !important;
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary);
 }
 
 /* Mobile-first approach: smaller sizes by default, then scale up */
@@ -295,12 +296,10 @@ html.dark-mode,
 }
 
 .dark-mode #toast {
-  background: rgba(30, 30, 30, 0.85) !important;
-  backdrop-filter: blur(12px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: var(--text-primary) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+  background-color: rgba(36, 36, 73, 0.85) !important;
+  color: var(--text-primary);
+  border: 1px solid rgba(163, 89, 255, 0.2);
+  box-shadow: var(--glow-primary);
 }
 
 /* Improve light mode toast notification */
@@ -470,7 +469,8 @@ button {
 
 /* In dark mode, adjust stat-item colors */
 .dark-mode .stat-item {
-  color: var(--bg-card);
+  background-color: rgba(36, 36, 73, 0.7) !important;
+  border: 1px solid rgba(163, 89, 255, 0.2);
 }
 
 /* Export buttons group for mobile */
@@ -607,19 +607,21 @@ button {
 
 /* Fix for page numbers in dark mode */
 .dark-mode #page-numbers button {
-  background-color: var(--bg-muted);
+  background-color: rgba(36, 36, 73, 0.7) !important;
   color: var(--text-primary);
 }
 
 .dark-mode #page-numbers button[class*="bg-indigo"] {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: rgba(163, 89, 255, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(180, 126, 255, 0.5) !important;
+  box-shadow: 0 0 10px rgba(163, 89, 255, 0.5);
 }
 
 /* Fix for checkboxes in dark mode */
 .dark-mode .form-checkbox {
-  border-color: var(--gray-medium);
-  background-color: var(--bg-muted);
+  background-color: rgba(163, 89, 255, 0.2) !important;
+  border-color: rgba(163, 89, 255, 0.5) !important;
 }
 
 /* Custom scrollbar */
@@ -1366,21 +1368,27 @@ main {
 }
 
 .dark-mode .export-btn {
-  background: rgba(30, 30, 30, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(36, 36, 73, 0.7) !important;
+  border: 1px solid rgba(163, 89, 255, 0.3) !important;
+  color: var(--text-primary) !important;
 }
 
 .export-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background: rgba(50, 50, 100, 0.8) !important;
+  border-color: rgba(255, 215, 0, 0.8) !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7) !important;
   transform: translateY(-5px);
-  box-shadow: var(--glow-accent);
-  border-color: var(--accent-color);
 }
 
-.dark-mode .export-btn:hover {
-  background: rgba(40, 40, 40, 0.4);
+.dark-mode .export-icon {
+  background-color: rgba(163, 89, 255, 0.3) !important;
+  color: var(--secondary-light) !important;
+}
+
+.dark-mode .export-btn:hover .export-icon {
+  background-color: rgba(255, 215, 0, 0.3) !important;
+  color: white !important;
+  transform: scale(1.2);
 }
 
 /* Apply frost glass effect to alias items */
@@ -1401,22 +1409,18 @@ main {
 }
 
 .dark-mode .alias-item {
-  background: rgba(30, 30, 30, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.alias-item:hover {
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  transform: translateY(-3px);
-  box-shadow: var(--glow-secondary);
-  border-color: var(--secondary-color);
-  color: var(--primary-color);
+  background: rgba(36, 36, 73, 0.7) !important;
+  border: 1px solid rgba(163, 89, 255, 0.2) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .dark-mode .alias-item:hover {
-  background: rgba(40, 40, 40, 0.4);
+  background: rgba(50, 50, 100, 0.8) !important;
+  border-color: rgba(32, 227, 230, 0.8) !important;
+  box-shadow: 0 0 20px rgba(32, 227, 230, 0.7) !important;
+  transform: translateY(-4px);
+  color: var(--secondary-light) !important;
 }
 
 /* Apply frost glass effect to filter options */
@@ -1433,17 +1437,16 @@ main {
 }
 
 .dark-mode .filter-group label {
-  background: rgba(30, 30, 30, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(36, 36, 73, 0.7) !important;
+  border: 1px solid rgba(163, 89, 255, 0.3) !important;
+  color: var(--text-primary) !important;
 }
 
 .filter-group label:hover {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px) saturate(150%);
-  -webkit-backdrop-filter: blur(10px) saturate(150%);
-  border-color: var(--primary-light);
-  box-shadow: var(--glow-primary);
-  transform: translateY(-2px);
+  background: rgba(50, 50, 100, 0.8) !important;
+  border-color: rgba(163, 89, 255, 0.8) !important;
+  box-shadow: 0 0 15px rgba(163, 89, 255, 0.7) !important;
+  transform: translateY(-3px);
 }
 
 .dark-mode .filter-group label:hover {
@@ -1464,8 +1467,23 @@ main {
 .dark-mode #page-numbers button,
 .dark-mode #prev-page,
 .dark-mode #next-page {
-  background: rgba(30, 30, 30, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(36, 36, 73, 0.7) !important;
+  border: 1px solid rgba(163, 89, 255, 0.3) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode #page-numbers button:hover:not(:disabled) {
+  background: rgba(50, 50, 100, 0.8) !important;
+  border-color: rgba(163, 89, 255, 0.8) !important;
+  box-shadow: 0 0 15px rgba(163, 89, 255, 0.7) !important;
+  transform: translateY(-2px);
+}
+
+.dark-mode #page-numbers button[class*="bg-indigo"] {
+  background-color: rgba(163, 89, 255, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(180, 126, 255, 0.5) !important;
+  box-shadow: 0 0 10px rgba(163, 89, 255, 0.5);
 }
 
 /* Apply frost glass effect to the whole page background */
@@ -1615,10 +1633,15 @@ body {
   }
 }
 
+.dark-mode .bg-circle {
+  opacity: 0.5;
+  filter: blur(40px);
+}
+
 .dark-mode .circle-1 {
   background: radial-gradient(
     circle,
-    rgba(163, 89, 255, 0.4) 0%,
+    rgba(163, 89, 255, 0.6) 0%,
     transparent 70%
   );
 }
@@ -1626,7 +1649,7 @@ body {
 .dark-mode .circle-2 {
   background: radial-gradient(
     circle,
-    rgba(32, 227, 230, 0.4) 0%,
+    rgba(32, 227, 230, 0.6) 0%,
     transparent 70%
   );
 }
@@ -1634,7 +1657,7 @@ body {
 .dark-mode .circle-3 {
   background: radial-gradient(
     circle,
-    rgba(255, 215, 0, 0.4) 0%,
+    rgba(255, 215, 0, 0.5) 0%,
     transparent 70%
   );
 }
@@ -1642,7 +1665,7 @@ body {
 .dark-mode .circle-4 {
   background: radial-gradient(
     circle,
-    rgba(180, 126, 255, 0.4) 0%,
+    rgba(180, 126, 255, 0.5) 0%,
     transparent 70%
   );
 }
@@ -1650,7 +1673,7 @@ body {
 .dark-mode .circle-5 {
   background: radial-gradient(
     circle,
-    rgba(92, 239, 241, 0.4) 0%,
+    rgba(92, 239, 241, 0.5) 0%,
     transparent 70%
   );
 }
@@ -1675,9 +1698,9 @@ main,
 .dark-mode input,
 .dark-mode button,
 .dark-mode select {
-  background: rgba(30, 30, 30, 0.5) !important;
+  background: rgba(36, 36, 73, 0.6) !important;
   color: var(--text-primary) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(163, 89, 255, 0.3) !important;
 }
 
 /* Ensure proper contrast for text elements */
@@ -1741,8 +1764,8 @@ main,
 }
 
 .dark-mode .bg-circle {
-  opacity: 0.4;
-  filter: blur(50px);
+  opacity: 0.5;
+  filter: blur(40px);
 }
 
 /* Make toast notifications properly transparent */
@@ -1881,4 +1904,46 @@ body:not(.dark-mode) #toast {
   color: #333333 !important;
   border: 1px solid rgba(0, 0, 0, 0.1) !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+.dark-mode .btn-primary {
+  background: rgba(163, 89, 255, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(180, 126, 255, 0.5) !important;
+  box-shadow: 0 0 10px rgba(163, 89, 255, 0.3);
+}
+
+.dark-mode .btn-primary:hover {
+  background: rgba(180, 126, 255, 0.9) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(163, 89, 255, 0.8), 0 0 40px rgba(163, 89, 255, 0.4);
+  border-color: rgba(214, 188, 255, 0.8) !important;
+}
+
+.dark-mode .btn-secondary {
+  background: rgba(32, 227, 230, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(92, 239, 241, 0.5) !important;
+  box-shadow: 0 0 10px rgba(32, 227, 230, 0.3);
+}
+
+.dark-mode .btn-secondary:hover {
+  background: rgba(92, 239, 241, 0.9) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(32, 227, 230, 0.8), 0 0 40px rgba(32, 227, 230, 0.4);
+  border-color: rgba(146, 245, 247, 0.8) !important;
+}
+
+.dark-mode .btn-accent {
+  background: rgba(255, 215, 0, 0.8) !important;
+  color: #111 !important;
+  border: 1px solid rgba(255, 236, 128, 0.5) !important;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.dark-mode .btn-accent:hover {
+  background: rgba(255, 236, 128, 0.9) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
+  border-color: rgba(255, 246, 179, 0.8) !important;
 }
