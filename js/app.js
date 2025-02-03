@@ -1,947 +1,1168 @@
 /**
- * Dotlify - Main application logic
+ * Dotlify - Main Application Script
+ * Handles UI interactions, rendering, and integrates the alias generator and export utilities
  */
+
 document.addEventListener("DOMContentLoaded", () => {
-  // DOM element references
+  // DOM elements
   const emailForm = document.getElementById("email-form");
   const baseEmailInput = document.getElementById("base-email");
   const generateBtn = document.getElementById("generate-btn");
+  const optionsSection = document.getElementById("options-section");
+  const resultsSection = document.getElementById("results-section");
+  const loadingIndicator = document.getElementById("loading-indicator");
+  const aliasesContainer = document.getElementById("aliases-container");
+  const copyAllBtn = document.getElementById("copy-all-btn");
+  const randomizeBtn = document.getElementById("randomize-btn");
+  const themeToggle = document.getElementById("theme-toggle");
+  const sunIcon = document.getElementById("sun-icon");
+  const moonIcon = document.getElementById("moon-icon");
+
+  // Pagination elements
+  const paginationControls = document.getElementById("pagination-controls");
+  const pageStartElement = document.getElementById("page-start");
+  const pageEndElement = document.getElementById("page-end");
+  const pageTotalElement = document.getElementById("page-total");
+  const prevPageBtn = document.getElementById("prev-page");
+  const nextPageBtn = document.getElementById("next-page");
+  const pageNumbersContainer = document.getElementById("page-numbers");
+  const pageSizeSelect = document.getElementById("page-size");
+
+  // Filters
+  const dotFilter = document.getElementById("filter-dot");
+  const plusFilter = document.getElementById("filter-plus");
+  const domainFilter = document.getElementById("filter-domain");
+  const combinedFilter = document.getElementById("filter-combined");
+
+  // Export buttons
+  const exportTxtBtn = document.getElementById("export-txt");
+  const exportCsvBtn = document.getElementById("export-csv");
+  const exportXlsxBtn = document.getElementById("export-xlsx");
+  const exportPdfBtn = document.getElementById("export-pdf");
+
+  // Toast element
+  const toast = document.getElementById("toast");
+
+  // DOM elements for alias counts
+  const dotCountElement = document.getElementById("dot-count");
+  const plusCountElement = document.getElementById("plus-count");
+  const domainCountElement = document.getElementById("domain-count");
+  const combinedCountElement = document.getElementById("combined-count");
+
+  // State
+  let currentEmail = "";
+  let allAliases = {
+    dot: [],
+    plus: [],
+    domain: [],
+    combined: [],
+  };
+
+  // Pagination state
+  let currentPage = 1;
+  let pageSize = parseInt(pageSizeSelect.value);
+  let filteredAliases = [];
+  let totalPages = 1;
+  let pageTransitionInProgress = false;
 
   // Event listeners
   emailForm.addEventListener("submit", handleFormSubmit);
 
+  // Copy all button event
+  copyAllBtn.addEventListener("click", copyAllAliases);
+
+  // Filter change events
+  dotFilter.addEventListener("change", updateFilters);
+  plusFilter.addEventListener("change", updateFilters);
+  domainFilter.addEventListener("change", updateFilters);
+  combinedFilter.addEventListener("change", updateFilters);
+
+  // Export button events
+  exportTxtBtn.addEventListener("click", () => exportAliases("txt"));
+  exportCsvBtn.addEventListener("click", () => exportAliases("csv"));
+  exportXlsxBtn.addEventListener("click", () => exportAliases("xlsx"));
+  exportPdfBtn.addEventListener("click", () => exportAliases("pdf"));
+
+  // Pagination events
+  prevPageBtn.addEventListener("click", goToPreviousPage);
+  nextPageBtn.addEventListener("click", goToNextPage);
+  pageSizeSelect.addEventListener("change", changePageSize);
+
+  // Randomize button event
+  randomizeBtn.addEventListener("click", randomizeAliases);
+
+  // Theme toggle event
+  themeToggle.addEventListener("click", toggleTheme);
+
+  // Section toggle functionality for mobile
+  const sectionToggles = document.querySelectorAll(".section-toggle");
+  const sectionHeaders = document.querySelectorAll(
+    ".section-header[data-target]"
+  );
+
+  // Function to toggle a collapsible section
+  function toggleSection(targetId) {
+    const targetContent = document.getElementById(targetId);
+    const toggle = document.querySelector(
+      `.section-toggle[aria-label*="${
+        targetId === "alias-options-content" ? "alias" : "download"
+      }"]`
+    );
+
+    if (!targetContent || !toggle) return;
+
+    // Toggle collapsed state
+    toggle.classList.toggle("collapsed");
+    targetContent.classList.toggle("collapsed");
+
+    // Store collapsed state in localStorage for persistence
+    const isCollapsed = targetContent.classList.contains("collapsed");
+    localStorage.setItem(
+      `section_${targetId}_collapsed`,
+      isCollapsed.toString()
+    );
+  }
+
+  // Add click listeners to section toggle buttons
+  sectionToggles.forEach((toggle) => {
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent triggering the header click
+      const header = toggle.closest(".section-header");
+      if (header) {
+        const targetId = header.getAttribute("data-target");
+        if (targetId) toggleSection(targetId);
+      }
+    });
+  });
+
+  // Add click listeners to section headers
+  sectionHeaders.forEach((header) => {
+    header.addEventListener("click", () => {
+      const targetId = header.getAttribute("data-target");
+      if (targetId) toggleSection(targetId);
+    });
+  });
+
   /**
-   * Handle form submission
+   * Initialize collapsible sections based on saved preferences or defaults
    */
-  function handleFormSubmit(e) {
+  function initializeCollapsibleSections() {
+    // Apply to all section headers with data-target
+    sectionHeaders.forEach((header) => {
+      const targetId = header.getAttribute("data-target");
+      if (!targetId) return;
+
+      const targetContent = document.getElementById(targetId);
+      const toggle = header.querySelector(".section-toggle");
+
+      if (!targetContent || !toggle) return;
+
+      // Check localStorage for saved state, default to collapsed
+      const shouldBeCollapsed =
+        localStorage.getItem(`section_${targetId}_collapsed`) !== "false";
+
+      // Apply collapsed state by default or based on saved preference
+      if (shouldBeCollapsed) {
+        toggle.classList.add("collapsed");
+        targetContent.classList.add("collapsed");
+      } else {
+        toggle.classList.remove("collapsed");
+        targetContent.classList.remove("collapsed");
+      }
+    });
+  }
+
+  /**
+   * Adjust collapsible sections based on screen size
+   */
+  function adjustCollapsibleSectionsByScreenSize() {
+    if (window.innerWidth > 768) {
+      // On desktop, ensure content is visible even if toggles show collapsed state
+      document.querySelectorAll(".section-content").forEach((content) => {
+        // Skip if it's the Generated Aliases controls - not collapsible
+        if (content.id === "alias-controls") {
+          return;
+        }
+
+        // Keep the collapsed class for state tracking but ensure content is visible on desktop
+        if (window.getComputedStyle(content).display === "none") {
+          content.style.maxHeight = "500px";
+          content.style.opacity = "1";
+          content.style.overflow = "visible";
+        }
+      });
+    } else {
+      // On mobile, restore the proper collapsed state
+      document
+        .querySelectorAll(".section-content.collapsed")
+        .forEach((content) => {
+          // Skip if it's the Generated Aliases controls - not collapsible
+          if (content.id === "alias-controls") {
+            return;
+          }
+
+          content.style.maxHeight = "";
+          content.style.opacity = "";
+          content.style.overflow = "";
+        });
+    }
+  }
+
+  // Initialize collapsible sections when page loads - collapse all by default
+  initializeCollapsibleSections();
+
+  // Also ensure proper display on desktop vs mobile
+  adjustCollapsibleSectionsByScreenSize();
+
+  // Listen for window resize to adjust collapsible sections
+  window.addEventListener("resize", adjustCollapsibleSectionsByScreenSize);
+
+  /**
+   * Handle form submission to generate aliases
+   * @param {Event} e - Form submit event
+   */
+  async function handleFormSubmit(e) {
     e.preventDefault();
-    const email = baseEmailInput.value.trim();
-    if (!email) {
-      alert("Please enter a valid email address");
+
+    // Get and validate the email
+    currentEmail = baseEmailInput.value.trim();
+    if (!isValidEmail(currentEmail)) {
+      showError("Please enter a valid email address");
       return;
     }
-    console.log("Email submitted:", email);
-    // More logic to be added
-  }
-});
-/**
- * Theme toggle functionality
- */
-function initializeTheme() {
-  const themeToggle = document.getElementById('theme-toggle');
-  const sunIcon = document.getElementById('sun-icon');
-  const moonIcon = document.getElementById('moon-icon');
-  
-  // Check for saved theme preference or use OS preference
-  const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
-  if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
-    document.documentElement.classList.add('dark-mode');
-    sunIcon.classList.add('hidden');
-    moonIcon.classList.remove('hidden');
-  }
-  
-  // Add toggle functionality
-  themeToggle.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark-mode');
-    sunIcon.classList.toggle('hidden');
-    moonIcon.classList.toggle('hidden');
-    
-    // Save the preference
-    if (document.documentElement.classList.contains('dark-mode')) {
-      localStorage.setItem('theme', 'dark');
-      showToast('Switched to dark theme');
-    } else {
-      localStorage.setItem('theme', 'light');
-      showToast('Switched to light theme');
-    }
-  });
-}
 
-// Add initialization to DOMContentLoaded
-document.addEventListener("DOMContentLoaded", () => {
-  // Existing DOM element references...
-  
-  // Initialize theme
-  initializeTheme();
-  
-  // Existing event listeners...
-});
-/**
- * Show toast notification
- */
-function showToast(message, duration = 3000) {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.classList.add('toast-visible');
-  
-  setTimeout(() => {
-    toast.classList.remove('toast-visible');
-  }, duration);
-}
-/**
- * Global variables for pagination and alias management
- */
-let currentPage = 1;
-let pageSize = 50;
-let filteredAliases = [];
-let allAliases = { dot: [], plus: [], domain: [], combined: [] };
-let currentEmail = "";
+    // Show loading state
+    generateBtn.disabled = true;
+    generateBtn.innerText = "Generating...";
+    optionsSection.classList.remove("hidden");
+    resultsSection.classList.remove("hidden");
+    loadingIndicator.classList.remove("hidden");
+    aliasesContainer.innerHTML = "";
 
-/**
- * Handle form submission
- */
-async function handleFormSubmit(e) {
-  e.preventDefault();
-  currentEmail = baseEmailInput.value.trim();
-  
-  // Validate email
-  if (!currentEmail) {
-    showToast("Please enter a valid email address", 3000);
-    return;
-  }
-  
-  // Update UI - loading state
-  generateBtn.disabled = true;
-  generateBtn.innerText = "Generating...";
-  loadingIndicator.classList.remove("hidden");
-  
-  // Show options and results sections
-  document.getElementById("options-section").classList.remove("hidden");
-  document.getElementById("results-section").classList.remove("hidden");
-  
-  // Generate aliases (may take time)
-  setTimeout(() => {
-    const result = aliasGenerator.generateAliases(currentEmail);
-    allAliases = result.aliases;
-    
-    // Update filter checkboxes and counts
-    updateAliasCounts(result.counts);
-    
-    // Set initial filters (all checked)
-    filteredAliases = aliasGenerator.getFilteredAliases({
-      dot: true,
-      plus: true,
-      domain: true,
-      combined: true
-    });
-    
-    // Add some randomness to order
-    shuffleArray(filteredAliases);
-    
-    // Set up export utilities
+    // Reset pagination
+    currentPage = 1;
+
+    // Set filename base for exports
     exportUtils.setFilenameBase(currentEmail);
-    
-    // Render the first page
-    renderCurrentPage();
-    
-    // Show pagination
-    document.getElementById("pagination-controls").classList.remove("hidden");
-    
-    // Reset UI state
-    loadingIndicator.classList.add("hidden");
-    generateBtn.disabled = false;
-    generateBtn.innerText = "Generate";
-  }, 50); // Small delay to allow UI to update first
-}
 
-/**
- * Update alias counts in the UI
- */
-function updateAliasCounts(counts) {
-  document.getElementById("dot-count").textContent = counts.dot;
-  document.getElementById("plus-count").textContent = counts.plus;
-  document.getElementById("domain-count").textContent = counts.domain;
-  document.getElementById("combined-count").textContent = counts.combined;
-}
+    // Use setTimeout to allow the UI to update before heavy computation
+    setTimeout(async () => {
+      try {
+        // Generate aliases (this may take some time for many combinations)
+        const result = await generateAliasesAsync(currentEmail);
+        allAliases = result.aliases;
 
-/**
- * Helper to shuffle array
- */
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-/**
- * Render the current page of aliases
- */
-function renderCurrentPage() {
-  const container = document.getElementById("aliases-container");
-  container.innerHTML = "";
-  
-  // Calculate page range
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, filteredAliases.length);
-  
-  // Update pagination info
-  document.getElementById("page-start").textContent = filteredAliases.length > 0 ? startIndex + 1 : 0;
-  document.getElementById("page-end").textContent = endIndex;
-  document.getElementById("page-total").textContent = filteredAliases.length;
-  
-  // No results case
-  if (filteredAliases.length === 0) {
-    const noResults = document.createElement("div");
-    noResults.className = "text-center py-8 text-text-muted";
-    noResults.textContent = "No aliases found with current filters";
-    container.appendChild(noResults);
-    
-    // Disable pagination buttons
-    document.getElementById("prev-page").disabled = true;
-    document.getElementById("next-page").disabled = true;
-    document.getElementById("pagination-controls").classList.add("hidden");
-    return;
-  }
-  
-  // Enable/disable pagination buttons
-  document.getElementById("prev-page").disabled = currentPage === 1;
-  document.getElementById("next-page").disabled = endIndex >= filteredAliases.length;
-  
-  // Render page numbers
-  renderPageNumbers();
-  
-  // Render aliases for this page
-  for (let i = startIndex; i < endIndex; i++) {
-    const alias = filteredAliases[i];
-    const aliasItem = document.createElement("div");
-    aliasItem.className = "alias-item";
-    aliasItem.dataset.value = alias;
-    
-    const label = document.createElement("span");
-    label.className = "label";
-    
-    // Determine method type
-    if (alias.includes("+")) {
-      label.textContent = "Plus method";
-    } else if (alias.includes(".") && !alias.startsWith(".") && !alias.endsWith(".")) {
-      label.textContent = "Dot method";
-    } else if (alias.split("@")[1] !== currentEmail.split("@")[1]) {
-      label.textContent = "Domain method";
-    } else {
-      label.textContent = "Combined method";
-    }
-    
-    const value = document.createElement("span");
-    value.className = "value";
-    value.textContent = alias;
-    
-    aliasItem.appendChild(label);
-    aliasItem.appendChild(value);
-    
-    // Add click to copy
-    aliasItem.addEventListener("click", () => {
-      navigator.clipboard.writeText(alias)
-        .then(() => showToast("Copied to clipboard!"))
-        .catch(err => console.error("Copy failed:", err));
-    });
-    
-    container.appendChild(aliasItem);
-  }
-}
+        // Update alias count indicators
+        updateAliasCounts();
 
-/**
- * Render page number buttons
- */
-function renderPageNumbers() {
-  const pageNumbers = document.getElementById("page-numbers");
-  pageNumbers.innerHTML = "";
-  
-  const totalPages = Math.ceil(filteredAliases.length / pageSize);
-  
-  // Always show first page, current page, and nearby pages
-  const pagesToShow = [];
-  
-  // Mobile optimization - show fewer pages
-  const maxButtons = window.innerWidth < 640 ? 3 : 5;
-  
-  // Always include first and last page
-  pagesToShow.push(1);
-  
-  // Create logical range around current page
-  let rangeStart = Math.max(2, currentPage - Math.floor((maxButtons - 3) / 2));
-  let rangeEnd = Math.min(totalPages - 1, rangeStart + maxButtons - 3);
-  
-  // Adjust range if we're near the end
-  if (rangeEnd <= rangeStart) {
-    rangeEnd = Math.min(totalPages - 1, rangeStart);
+        // Update filters and render first page
+        updateFilters();
+
+        // Hide loading indicator
+        loadingIndicator.classList.add("hidden");
+
+        // Reset button
+        generateBtn.disabled = false;
+        generateBtn.innerText = "Generate";
+      } catch (error) {
+        console.error("Error generating aliases:", error);
+        showError("An error occurred while generating aliases");
+
+        // Reset button
+        generateBtn.disabled = false;
+        generateBtn.innerText = "Generate";
+        loadingIndicator.classList.add("hidden");
+      }
+    }, 50); // Small delay to allow UI update
   }
-  
-  // Add range pages
-  for (let i = rangeStart; i <= rangeEnd; i++) {
-    if (!pagesToShow.includes(i)) {
-      pagesToShow.push(i);
-    }
-  }
-  
-  // Add last page if more than one page
-  if (totalPages > 1 && !pagesToShow.includes(totalPages)) {
-    pagesToShow.push(totalPages);
-  }
-  
-  // Sort pages
-  pagesToShow.sort((a, b) => a - b);
-  
-  // Add page number buttons with ellipses
-  let prevPage = 0;
-  for (const pageNum of pagesToShow) {
-    // Add ellipsis if there's a gap
-    if (pageNum > prevPage + 1) {
-      const ellipsis = document.createElement("span");
-      ellipsis.className = "pagination-ellipsis px-2 text-text-muted";
-      ellipsis.textContent = "...";
-      pageNumbers.appendChild(ellipsis);
-    }
-    
-    // Add page number button
-    addPageNumberButton(pageNum);
-    prevPage = pageNum;
-  }
-  
+
   /**
-   * Helper to add a page number button
+   * Update the alias count indicators in the UI
    */
-  function addPageNumberButton(pageNum) {
-    const button = document.createElement("button");
-    button.className = `btn-outline px-2 py-1 ${pageNum === currentPage ? 'current' : ''}`;
-    button.textContent = pageNum;
-    
-    button.addEventListener("click", () => {
-      if (pageNum !== currentPage) {
-        currentPage = pageNum;
-        renderCurrentPage();
-      }
-    });
-    
-    pageNumbers.appendChild(button);
-  }
-}
-/**
- * Initialize event listeners for pagination controls
- */
-function initializePaginationControls() {
-  // Previous page button
-  document.getElementById("prev-page").addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderCurrentPage();
-    }
-  });
-  
-  // Next page button
-  document.getElementById("next-page").addEventListener("click", () => {
-    const totalPages = Math.ceil(filteredAliases.length / pageSize);
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderCurrentPage();
-    }
-  });
-  
-  // Page size selector
-  document.getElementById("page-size").addEventListener("change", (e) => {
-    pageSize = parseInt(e.target.value, 10);
-    currentPage = 1; // Reset to first page
-    renderCurrentPage();
-  });
-}
+  function updateAliasCounts() {
+    // Get the counts from each type of alias
+    const dotCount = allAliases.dot.length;
+    const plusCount = allAliases.plus.length;
+    const domainCount = allAliases.domain.length;
+    const combinedCount = allAliases.combined.length;
 
-/**
- * Initialize event listeners for filter checkboxes
- */
-function initializeFilterControls() {
-  const filterDot = document.getElementById("filter-dot");
-  const filterPlus = document.getElementById("filter-plus");
-  const filterDomain = document.getElementById("filter-domain");
-  const filterCombined = document.getElementById("filter-combined");
-  
-  const updateFilters = () => {
-    filteredAliases = aliasGenerator.getFilteredAliases({
-      dot: filterDot.checked,
-      plus: filterPlus.checked,
-      domain: filterDomain.checked,
-      combined: filterCombined.checked
-    });
-    
-    currentPage = 1; // Reset to first page
-    renderCurrentPage();
-  };
-  
-  // Add change listeners
-  filterDot.addEventListener("change", updateFilters);
-  filterPlus.addEventListener("change", updateFilters);
-  filterDomain.addEventListener("change", updateFilters);
-  filterCombined.addEventListener("change", updateFilters);
-}
+    // Update the UI elements
+    dotCountElement.textContent = dotCount.toLocaleString();
+    plusCountElement.textContent = plusCount.toLocaleString();
+    domainCountElement.textContent = domainCount.toLocaleString();
+    combinedCountElement.textContent = combinedCount.toLocaleString();
 
-/**
- * Initialize event listeners for export buttons
- */
-function initializeExportControls() {
-  // Export buttons
-  document.getElementById("export-txt").addEventListener("click", () => {
-    exportUtils.exportAsText(filteredAliases);
-    showToast("Exported as TXT file");
-  });
-  
-  document.getElementById("export-csv").addEventListener("click", () => {
-    exportUtils.exportAsCSV(filteredAliases);
-    showToast("Exported as CSV file");
-  });
-  
-  document.getElementById("export-xlsx").addEventListener("click", () => {
-    exportUtils.exportAsExcel(filteredAliases);
-    showToast("Exported as Excel file");
-  });
-  
-  document.getElementById("export-pdf").addEventListener("click", () => {
-    exportUtils.exportAsPDF(filteredAliases);
-    showToast("Exported as PDF file");
-  });
-  
-  // Randomize button
-  document.getElementById("randomize-btn").addEventListener("click", () => {
-    shuffleArray(filteredAliases);
-    renderCurrentPage();
-    showToast("Aliases randomized");
-  });
-  
-  // Copy all button
-  document.getElementById("copy-all-btn").addEventListener("click", () => {
-    navigator.clipboard.writeText(filteredAliases.join("\n"))
-      .then(() => showToast("All aliases copied to clipboard!"))
-      .catch(err => console.error("Copy failed:", err));
-  });
-}
+    // Add subtle animation to highlight the counts
+    [
+      dotCountElement,
+      plusCountElement,
+      domainCountElement,
+      combinedCountElement,
+    ].forEach((element) => {
+      element.style.transform = "scale(1.2)";
+      element.style.boxShadow = getGlowForElement(element.id);
 
-// Connect to initialization
-document.addEventListener("DOMContentLoaded", () => {
-  // DOM element references
-  const emailForm = document.getElementById("email-form");
-  const baseEmailInput = document.getElementById("base-email");
-  const generateBtn = document.getElementById("generate-btn");
-  const aliasesContainer = document.getElementById("aliases-container");
-  const loadingIndicator = document.getElementById("loading-indicator");
-  
-  // Initialize all components
-  initializeTheme();
-  initializePaginationControls();
-  initializeFilterControls();
-  initializeExportControls();
-  
-  // Form submission
-  emailForm.addEventListener("submit", handleFormSubmit);
-});
-/**
- * Initialize collapsible sections
- */
-function initializeCollapsibleSections() {
-  const sectionHeaders = document.querySelectorAll('.section-header');
-  
-  sectionHeaders.forEach(header => {
-    const targetId = header.dataset.target;
-    const targetContent = document.getElementById(targetId);
-    const toggle = header.querySelector('.section-toggle');
-    
-    if (!targetContent || !toggle) return;
-    
-    header.addEventListener('click', () => {
-      // Only apply on mobile
-      if (window.innerWidth < 768) {
-        toggle.classList.toggle('collapsed');
-        targetContent.classList.toggle('collapsed');
-      }
-    });
-  });
-}
-
-// Add to initialization
-document.addEventListener("DOMContentLoaded", () => {
-  // Existing initialization...
-  
-  initializeCollapsibleSections();
-});
-/**
- * Update theme initialization to set dark theme as default
- */
-function initializeTheme() {
-  const themeToggle = document.getElementById('theme-toggle');
-  const sunIcon = document.getElementById('sun-icon');
-  const moonIcon = document.getElementById('moon-icon');
-  
-  // Set dark theme as default unless explicitly set to light
-  const savedTheme = localStorage.getItem('theme');
-  
-  if (savedTheme !== 'light') {
-    document.documentElement.classList.add('dark-mode');
-    sunIcon.classList.add('hidden');
-    moonIcon.classList.remove('hidden');
-  }
-  
-  // Add toggle functionality
-  themeToggle.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark-mode');
-    sunIcon.classList.toggle('hidden');
-    moonIcon.classList.toggle('hidden');
-    
-    // Save the preference
-    if (document.documentElement.classList.contains('dark-mode')) {
-      localStorage.setItem('theme', 'dark');
-      showToast('Switched to dark theme');
-    } else {
-      localStorage.setItem('theme', 'light');
-      showToast('Switched to light theme');
-    }
-  });
-}
-/**
- * Enhanced theme toggle with animation
- */
-function initializeTheme() {
-  const themeToggle = document.getElementById('theme-toggle');
-  const sunIcon = document.getElementById('sun-icon');
-  const moonIcon = document.getElementById('moon-icon');
-  const body = document.body;
-  
-  // Set dark theme as default unless explicitly set to light
-  const savedTheme = localStorage.getItem('theme');
-  
-  if (savedTheme !== 'light') {
-    document.documentElement.classList.add('dark-mode');
-    sunIcon.classList.add('hidden');
-    moonIcon.classList.remove('hidden');
-  }
-  
-  // Add toggle functionality with enhanced animation
-  themeToggle.addEventListener('click', () => {
-    // Create ripple effect element
-    const ripple = document.createElement('div');
-    ripple.style.position = 'fixed';
-    ripple.style.top = '0';
-    ripple.style.left = '0';
-    ripple.style.width = '100vw';
-    ripple.style.height = '100vh';
-    ripple.style.backgroundColor = document.documentElement.classList.contains('dark-mode') 
-      ? 'rgba(255, 255, 255, 0.03)' 
-      : 'rgba(0, 0, 0, 0.03)';
-    ripple.style.zIndex = '-1';
-    ripple.style.opacity = '0';
-    ripple.style.transition = 'opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
-    
-    document.body.appendChild(ripple);
-    
-    // Trigger animation
-    setTimeout(() => {
-      ripple.style.opacity = '1';
-    }, 10);
-    
-    // Add animation to icons
-    if (document.documentElement.classList.contains('dark-mode')) {
-      moonIcon.style.transform = 'rotate(360deg) scale(0)';
-      
       setTimeout(() => {
-        document.documentElement.classList.remove('dark-mode');
-        moonIcon.classList.add('hidden');
-        sunIcon.classList.remove('hidden');
-        sunIcon.style.transform = 'rotate(0) scale(1)';
-      }, 150);
-    } else {
-      sunIcon.style.transform = 'rotate(-360deg) scale(0)';
-      
-      setTimeout(() => {
-        document.documentElement.classList.add('dark-mode');
-        sunIcon.classList.add('hidden');
-        moonIcon.classList.remove('hidden');
-        moonIcon.style.transform = 'rotate(0) scale(1)';
-      }, 150);
-    }
-    
-    // Save the preference
-    if (!document.documentElement.classList.contains('dark-mode')) {
-      localStorage.setItem('theme', 'light');
-      showToast('Switched to light theme');
-    } else {
-      localStorage.setItem('theme', 'dark');
-      showToast('Switched to dark theme');
-    }
-    
-    // Clean up ripple
-    setTimeout(() => {
-      ripple.style.opacity = '0';
-      setTimeout(() => {
-        document.body.removeChild(ripple);
+        element.style.transform = "";
+        element.style.boxShadow = "";
       }, 800);
-    }, 800);
-  });
-}
-/**
- * Updated render page numbers for mobile optimization
- */
-function renderPageNumbers() {
-  const pageNumbers = document.getElementById("page-numbers");
-  pageNumbers.innerHTML = "";
-  
-  const totalPages = Math.ceil(filteredAliases.length / pageSize);
-  
-  // No pages case
-  if (totalPages === 0) {
-    return;
+    });
   }
-  
-  // Single page case - just show page 1
-  if (totalPages === 1) {
-    addPageNumberButton(1);
-    return;
-  }
-  
-  // Mobile check - show fewer pages on small screens
-  const isMobile = window.innerWidth < 640;
-  
-  // On mobile, just show first, current, and last page
-  if (isMobile) {
-    // First page
-    addPageNumberButton(1);
-    
-    // Current page (if not first or last)
-    if (currentPage > 1 && currentPage < totalPages) {
-      if (currentPage > 2) {
-        const ellipsis = document.createElement("span");
-        ellipsis.className = "pagination-ellipsis";
-        ellipsis.textContent = "...";
-        pageNumbers.appendChild(ellipsis);
-      }
-      
-      addPageNumberButton(currentPage);
-    }
-    
-    // Last page (if more than one page)
-    if (totalPages > 1) {
-      if (currentPage < totalPages - 1) {
-        const ellipsis = document.createElement("span");
-        ellipsis.className = "pagination-ellipsis";
-        ellipsis.textContent = "...";
-        pageNumbers.appendChild(ellipsis);
-      }
-      
-      addPageNumberButton(totalPages);
-    }
-  } 
-  // Desktop - show more pages
-  else {
-    // Always show first page
-    addPageNumberButton(1);
-    
-    // Calculate range around current page
-    let rangeStart = Math.max(2, currentPage - 1);
-    let rangeEnd = Math.min(totalPages - 1, rangeStart + 2);
-    
-    // Adjust range if at the end
-    if (rangeEnd >= totalPages - 1) {
-      rangeEnd = totalPages - 1;
-      rangeStart = Math.max(2, rangeEnd - 2);
-    }
-    
-    // Add ellipsis if needed
-    if (rangeStart > 2) {
-      const ellipsis = document.createElement("span");
-      ellipsis.className = "pagination-ellipsis";
-      ellipsis.textContent = "...";
-      pageNumbers.appendChild(ellipsis);
-    }
-    
-    // Add range pages
-    for (let i = rangeStart; i <= rangeEnd; i++) {
-      addPageNumberButton(i);
-    }
-    
-    // Add ellipsis if needed
-    if (rangeEnd < totalPages - 1) {
-      const ellipsis = document.createElement("span");
-      ellipsis.className = "pagination-ellipsis";
-      ellipsis.textContent = "...";
-      pageNumbers.appendChild(ellipsis);
-    }
-    
-    // Add last page if more than one page
-    if (totalPages > 1) {
-      addPageNumberButton(totalPages);
+
+  /**
+   * Get appropriate glow effect based on element ID
+   * @param {string} elementId - The ID of the element
+   * @returns {string} - CSS box-shadow value for glow effect
+   */
+  function getGlowForElement(elementId) {
+    switch (elementId) {
+      case "dot-count":
+        return "var(--glow-primary)";
+      case "plus-count":
+        return "var(--glow-secondary)";
+      case "domain-count":
+        return "var(--glow-accent)";
+      case "combined-count":
+        return "var(--glow-primary), var(--glow-secondary), var(--glow-accent)";
+      default:
+        return "var(--glow-primary)";
     }
   }
-  
-  // Helper to add a page number button
-  function addPageNumberButton(pageNum) {
-    const button = document.createElement("button");
-    const isCurrentPage = pageNum === currentPage;
-    
-    // Styling for current vs other pages - supports dark mode
-    if (isCurrentPage) {
-      button.className = 'btn-outline px-2 py-1 current';
-      // Better styling for dark mode with CSS variables
-      button.style.backgroundColor = 'var(--primary-color)';
-      button.style.borderColor = 'var(--primary-color)';
-      button.style.color = 'white';
-    } else {
-      button.className = 'btn-outline px-2 py-1';
+
+  /**
+   * Copy all currently filtered aliases to clipboard
+   */
+  function copyAllAliases() {
+    // Use all filtered aliases, not just the current page
+    if (filteredAliases.length === 0) {
+      showError("No aliases to copy");
+      return;
     }
-    
-    button.textContent = pageNum;
-    
-    button.addEventListener("click", () => {
-      if (pageNum !== currentPage) {
-        currentPage = pageNum;
-        renderCurrentPage();
+
+    // Create a string with all aliases
+    const content = filteredAliases.join("\n");
+
+    // Copy to clipboard
+    copyToClipboard(
+      content,
+      `Copied all ${filteredAliases.length} aliases to clipboard!`
+    );
+  }
+
+  /**
+   * Generate aliases asynchronously to avoid blocking the UI
+   * @param {string} email - The base email address
+   * @returns {Promise} - Resolves to the generated aliases and counts
+   */
+  function generateAliasesAsync(email) {
+    return new Promise((resolve) => {
+      // Use a web worker if available for heavy computation
+      if (window.Worker) {
+        // For simplicity, using setTimeout to simulate a worker
+        // In a production app, you'd create a proper Web Worker
+        setTimeout(() => {
+          const result = aliasGenerator.generateAliases(email);
+          resolve(result);
+        }, 0);
+      } else {
+        // Direct call if web workers not supported
+        const result = aliasGenerator.generateAliases(email);
+        resolve(result);
       }
     });
-    
-    pageNumbers.appendChild(button);
   }
-}
 
-// Add window resize handler to update pagination for different screen sizes
-window.addEventListener('resize', debounce(() => {
-  if (filteredAliases.length > 0) {
+  /**
+   * Update filter selection and refresh display
+   */
+  function updateFilters() {
+    // Get filtered aliases based on selected methods
+    const filters = getSelectedFilters();
+    filteredAliases = aliasGenerator.getFilteredAliases(filters);
+
+    // Randomize the order of aliases
+    shuffleArray(filteredAliases);
+
+    // Reset to first page when filters change
+    currentPage = 1;
+
+    // Update pagination
+    updatePagination();
+
+    // Render current page
+    renderCurrentPage();
+  }
+
+  /**
+   * Shuffle an array using the Fisher-Yates algorithm
+   * @param {Array} array - The array to shuffle
+   */
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
+  }
+
+  /**
+   * Update pagination controls and state
+   */
+  function updatePagination() {
+    // Calculate total pages
+    totalPages = Math.max(1, Math.ceil(filteredAliases.length / pageSize));
+
+    // Adjust current page if needed
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+
+    // Show pagination controls if needed
+    if (filteredAliases.length > 0) {
+      paginationControls.classList.remove("hidden");
+    } else {
+      paginationControls.classList.add("hidden");
+    }
+
+    // Update pagination info
+    const start =
+      filteredAliases.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    const end = Math.min(currentPage * pageSize, filteredAliases.length);
+
+    pageStartElement.textContent = start;
+    pageEndElement.textContent = end;
+    pageTotalElement.textContent = filteredAliases.length;
+
+    // Set button states
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages;
+
+    // Render page number buttons
     renderPageNumbers();
   }
-}, 250));
 
-// Debounce helper
-function debounce(func, wait) {
-  let timeout;
-  return function() {
-    const context = this;
-    const args = arguments;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(context, args), wait);
-  };
-}
-// Remove statistics functionality to simplify the UI
-// Previous code included:
-// - updateCounts function that tracked total aliases
-// - DOM elements for displaying counts
-// - Functions for calculating statistics
-
-// This commit removes those elements to create a cleaner, more focused interface
-/**
- * Enhanced alias count updates with animation
- */
-function updateAliasCounts(counts) {
-  animateCountUpdate('dot-count', counts.dot);
-  animateCountUpdate('plus-count', counts.plus);
-  animateCountUpdate('domain-count', counts.domain);
-  animateCountUpdate('combined-count', counts.combined);
-  
   /**
-   * Helper to animate count updates
+   * Render page number buttons
    */
-  function animateCountUpdate(elementId, targetCount) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    // Get current count
-    const currentCount = parseInt(element.textContent) || 0;
-    
-    // If no change, skip animation
-    if (currentCount === targetCount) {
-      return;
-    }
-    
-    // Determine if counting up or down
-    const isIncreasing = targetCount > currentCount;
-    
-    // Animate over 500ms
-    const duration = 500;
-    const startTime = performance.now();
-    
-    requestAnimationFrame(function updateCount(timestamp) {
-      // Calculate progress (0-1)
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Use easing function for smoother animation
-      const easedProgress = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-      
-      // Calculate current value
-      let currentValue;
-      if (isIncreasing) {
-        currentValue = Math.floor(currentCount + (targetCount - currentCount) * easedProgress);
-      } else {
-        currentValue = Math.ceil(currentCount - (currentCount - targetCount) * easedProgress);
+  function renderPageNumbers() {
+    pageNumbersContainer.innerHTML = "";
+
+    // Always use the simplified approach with just 3 buttons (first, current, last)
+    // when there are enough pages to display
+    if (totalPages <= 3) {
+      // If we have 3 or fewer pages, just show all of them
+      for (let i = 1; i <= totalPages; i++) {
+        addPageNumberButton(i);
       }
-      
-      // Update element
-      element.textContent = currentValue;
-      
-      // Continue animation if not complete
-      if (progress < 1) {
-        requestAnimationFrame(updateCount);
-      } else {
-        // Ensure final value is exactly the target
-        element.textContent = targetCount;
+    } else {
+      // Show only first, current and last page numbers without ellipsis
+
+      // Add first page button
+      addPageNumberButton(1);
+
+      // Add current page if it's not first or last
+      if (currentPage !== 1 && currentPage !== totalPages) {
+        addPageNumberButton(currentPage);
+      }
+
+      // Add last page button
+      addPageNumberButton(totalPages);
+    }
+
+    // Watch for window resize to update pagination
+    window.removeEventListener("resize", handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
+  }
+
+  /**
+   * Handle window resize to update pagination display
+   */
+  function handleWindowResize() {
+    // Debounce the resize event
+    clearTimeout(window.resizeTimer);
+    window.resizeTimer = setTimeout(() => {
+      renderPageNumbers();
+    }, 250);
+  }
+
+  /**
+   * Add a page number button to the container
+   * @param {number} pageNum - The page number
+   */
+  function addPageNumberButton(pageNum) {
+    const button = document.createElement("button");
+    button.textContent = pageNum;
+    button.className =
+      pageNum === currentPage
+        ? "bg-indigo-500 text-white"
+        : "bg-white text-gray-700 hover:bg-gray-50";
+
+    // Apply premium styling
+    button.style.transition =
+      "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+
+    if (pageNum === currentPage) {
+      // Current page styling with luxurious gold accent
+      button.style.backgroundColor = "var(--primary-color)";
+      button.style.color = "var(--white)";
+      button.style.boxShadow = "var(--glow-primary)";
+      button.style.transform = "scale(1.05)";
+      button.style.fontWeight = "600";
+    } else {
+      // Other page numbers
+      button.style.backgroundColor = "var(--bg-card)";
+      button.style.color = "var(--text-primary)";
+      button.style.border = "1px solid var(--gray-medium)";
+    }
+
+    // Add hover effect
+    button.addEventListener("mouseenter", () => {
+      if (pageNum !== currentPage) {
+        button.style.backgroundColor = "var(--bg-muted)";
+        button.style.boxShadow = "var(--glow-secondary)";
+        button.style.transform = "translateY(-2px)";
       }
     });
+
+    button.addEventListener("mouseleave", () => {
+      if (pageNum !== currentPage) {
+        button.style.backgroundColor = "var(--bg-card)";
+        button.style.boxShadow = "";
+        button.style.transform = "";
+      }
+    });
+
+    button.addEventListener("click", () => {
+      if (pageNum !== currentPage) {
+        goToPage(pageNum);
+      }
+    });
+
+    pageNumbersContainer.appendChild(button);
   }
-}
-/**
- * Add keyboard shortcuts for common actions
- */
-function initializeKeyboardShortcuts() {
-  document.addEventListener('keydown', (e) => {
-    // Only process if not in an input
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+
+  /**
+   * Go to a specific page
+   * @param {number} pageNum - The page number to go to
+   */
+  function goToPage(pageNum) {
+    if (
+      pageNum >= 1 &&
+      pageNum <= totalPages &&
+      pageNum !== currentPage &&
+      !pageTransitionInProgress
+    ) {
+      currentPage = pageNum;
+      animatePageTransition();
+    }
+  }
+
+  /**
+   * Go to the previous page
+   */
+  function goToPreviousPage() {
+    if (currentPage > 1 && !pageTransitionInProgress) {
+      currentPage--;
+      animatePageTransition();
+    }
+  }
+
+  /**
+   * Go to the next page
+   */
+  function goToNextPage() {
+    if (currentPage < totalPages && !pageTransitionInProgress) {
+      currentPage++;
+      animatePageTransition();
+    }
+  }
+
+  /**
+   * Animate the transition between pages
+   */
+  function animatePageTransition() {
+    if (pageTransitionInProgress) return;
+
+    pageTransitionInProgress = true;
+
+    // Add transition class
+    aliasesContainer.classList.add("page-transition");
+
+    // Wait for transition to complete
+    setTimeout(() => {
+      // Update pagination UI
+      updatePagination();
+
+      // Render the new page
+      renderCurrentPage();
+
+      // Remove transition class
+      setTimeout(() => {
+        aliasesContainer.classList.remove("page-transition");
+        pageTransitionInProgress = false;
+      }, 50);
+    }, 150);
+  }
+
+  /**
+   * Change the page size
+   */
+  function changePageSize() {
+    if (pageTransitionInProgress) return;
+
+    pageSize = parseInt(pageSizeSelect.value);
+    currentPage = 1; // Reset to first page
+    animatePageTransition();
+  }
+
+  /**
+   * Get the currently selected filters
+   * @returns {Object} - Object with boolean flags for each method
+   */
+  function getSelectedFilters() {
+    return {
+      dot: dotFilter.checked,
+      plus: plusFilter.checked,
+      domain: domainFilter.checked,
+      combined: combinedFilter.checked,
+    };
+  }
+
+  /**
+   * Render the current page of aliases
+   */
+  function renderCurrentPage() {
+    // Clear container
+    aliasesContainer.innerHTML = "";
+
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, filteredAliases.length);
+
+    // Get aliases for current page
+    const currentPageAliases = filteredAliases.slice(startIndex, endIndex);
+
+    // Render aliases
+    renderAliases(currentPageAliases);
+  }
+
+  /**
+   * Render the given aliases
+   * @param {Array} aliases - Array of email aliases to render
+   */
+  function renderAliases(aliases) {
+    // Create document fragment to minimize DOM updates
+    const fragment = document.createDocumentFragment();
+
+    // Add each alias to the fragment
+    aliases.forEach((alias) => {
+      const aliasItem = createAliasItem(alias, alias.split("@").pop());
+      fragment.appendChild(aliasItem);
+    });
+
+    // Add fragment to container
+    aliasesContainer.appendChild(fragment);
+  }
+
+  /**
+   * Create and append an alias item element to the container
+   * @param {string} alias - The email alias to display
+   * @param {string} type - The type of alias (dot, plus, domain, or combined)
+   * @returns {HTMLElement} - The created alias item element
+   */
+  function createAliasItem(alias, type) {
+    const aliasItem = document.createElement("div");
+    aliasItem.className = "alias-item";
+    aliasItem.textContent = alias;
+    aliasItem.dataset.alias = alias;
+    aliasItem.dataset.type = type;
+
+    // Add premium styling
+    aliasItem.style.transition =
+      "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+    aliasItem.style.backgroundColor = "var(--bg-card)";
+    aliasItem.style.borderRadius = "var(--radius-md)";
+    aliasItem.style.border = "1px solid var(--gray-medium)";
+    aliasItem.style.padding = "0.75rem";
+
+    // Add colored indicator based on alias type
+    const indicator = document.createElement("span");
+    indicator.style.display = "inline-block";
+    indicator.style.width = "8px";
+    indicator.style.height = "8px";
+    indicator.style.borderRadius = "50%";
+    indicator.style.marginRight = "8px";
+
+    // Set color based on alias type
+    switch (type) {
+      case "dot":
+        indicator.style.backgroundColor = "var(--primary-color)";
+        indicator.title = "Dot method";
+        break;
+      case "plus":
+        indicator.style.backgroundColor = "var(--secondary-color)";
+        indicator.title = "Plus method";
+        break;
+      case "domain":
+        indicator.style.backgroundColor = "var(--accent-color)";
+        indicator.title = "Domain method";
+        break;
+      case "combined":
+        // Create gradient for combined
+        indicator.style.background =
+          "linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color))";
+        indicator.title = "Combined method";
+        break;
+    }
+
+    // Create wrapper for content
+    const contentWrapper = document.createElement("div");
+    contentWrapper.style.display = "flex";
+    contentWrapper.style.alignItems = "center";
+    contentWrapper.appendChild(indicator);
+
+    // Add text in span for better control
+    const textSpan = document.createElement("span");
+    textSpan.textContent = alias;
+    textSpan.style.textOverflow = "ellipsis";
+    textSpan.style.overflow = "hidden";
+    textSpan.style.whiteSpace = "nowrap";
+    contentWrapper.appendChild(textSpan);
+
+    // Clear existing content and add the wrapper
+    aliasItem.textContent = "";
+    aliasItem.appendChild(contentWrapper);
+
+    // Add hover effect
+    aliasItem.addEventListener("mouseenter", () => {
+      aliasItem.style.transform = "translateY(-3px)";
+      aliasItem.style.boxShadow =
+        "var(--glow-" +
+        (type === "combined"
+          ? "primary"
+          : type === "dot"
+          ? "primary"
+          : type === "plus"
+          ? "secondary"
+          : "accent") +
+        ")";
+      aliasItem.style.borderColor =
+        "var(--" +
+        (type === "combined"
+          ? "primary"
+          : type === "dot"
+          ? "primary"
+          : type === "plus"
+          ? "secondary"
+          : "accent") +
+        "-color)";
+
+      // Add copy indicator
+      const copyHint = document.createElement("span");
+      copyHint.textContent = "Click to copy";
+      copyHint.style.position = "absolute";
+      copyHint.style.right = "10px";
+      copyHint.style.fontSize = "0.7rem";
+      copyHint.style.opacity = "0";
+      copyHint.style.color = "var(--text-secondary)";
+      copyHint.style.transition = "opacity 0.2s ease";
+      copyHint.className = "copy-hint";
+
+      // Remove any existing copy hints
+      const existingHint = aliasItem.querySelector(".copy-hint");
+      if (existingHint) {
+        aliasItem.removeChild(existingHint);
+      }
+
+      aliasItem.appendChild(copyHint);
+
+      // Fade in the hint
+      setTimeout(() => {
+        copyHint.style.opacity = "1";
+      }, 50);
+    });
+
+    aliasItem.addEventListener("mouseleave", () => {
+      aliasItem.style.transform = "";
+      aliasItem.style.boxShadow = "";
+      aliasItem.style.borderColor = "var(--gray-medium)";
+
+      // Remove copy hint
+      const copyHint = aliasItem.querySelector(".copy-hint");
+      if (copyHint) {
+        copyHint.style.opacity = "0";
+        setTimeout(() => {
+          if (copyHint.parentNode === aliasItem) {
+            aliasItem.removeChild(copyHint);
+          }
+        }, 200);
+      }
+    });
+
+    // Add click event to copy the alias
+    aliasItem.addEventListener("click", () => {
+      const aliasText = alias; // Get the actual alias text
+
+      navigator.clipboard
+        .writeText(aliasText)
+        .then(() => {
+          // Add a temporary "copied" visual feedback
+          aliasItem.style.backgroundColor = "var(--bg-muted)";
+          aliasItem.style.boxShadow = "var(--glow-accent)";
+          aliasItem.style.borderColor = "var(--accent-color)";
+
+          // Create and add a checkmark icon
+          const checkmark = document.createElement("span");
+          checkmark.innerHTML = "✓";
+          checkmark.style.position = "absolute";
+          checkmark.style.right = "10px";
+          checkmark.style.color = "var(--accent-color)";
+          checkmark.style.fontWeight = "bold";
+          checkmark.className = "copied-checkmark";
+
+          // Remove any existing copy hints or checkmarks
+          const existingHint = aliasItem.querySelector(".copy-hint");
+          const existingCheck = aliasItem.querySelector(".copied-checkmark");
+          if (existingHint) aliasItem.removeChild(existingHint);
+          if (existingCheck) aliasItem.removeChild(existingCheck);
+
+          aliasItem.appendChild(checkmark);
+
+          // Show premium toast notification
+          showToast(`Copied ${aliasText} to clipboard!`, {
+            duration: 2000,
+            style: `border-left: 4px solid var(--accent-color); box-shadow: var(--shadow-md), var(--glow-accent);`,
+          });
+
+          // Reset styles after animation
+          setTimeout(() => {
+            aliasItem.style.backgroundColor = "var(--bg-card)";
+            aliasItem.style.boxShadow = "";
+            aliasItem.style.borderColor = "var(--gray-medium)";
+
+            // Remove checkmark with fade
+            if (checkmark.parentNode === aliasItem) {
+              checkmark.style.opacity = "0";
+              setTimeout(() => {
+                if (checkmark.parentNode === aliasItem) {
+                  aliasItem.removeChild(checkmark);
+                }
+              }, 300);
+            }
+          }, 1000);
+        })
+        .catch((err) => {
+          console.error("Could not copy text: ", err);
+          showError("Failed to copy to clipboard");
+        });
+    });
+
+    // Add relative positioning for absolute elements
+    aliasItem.style.position = "relative";
+
+    return aliasItem;
+  }
+
+  /**
+   * Copy text to clipboard and show toast notification
+   * @param {string} text - Text to copy
+   * @param {string} successMessage - Optional custom message for successful copy
+   */
+  function copyToClipboard(text, successMessage = "Copied to clipboard!") {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        showToast(successMessage);
+      })
+      .catch((err) => {
+        console.error("Could not copy text: ", err);
+        showError("Failed to copy to clipboard");
+      });
+  }
+
+  /**
+   * Export aliases in the selected format
+   * @param {string} format - The export format (txt, csv, xlsx, pdf)
+   */
+  function exportAliases(format) {
+    // Export all filtered aliases, not just the current page
+    if (filteredAliases.length === 0) {
+      showError("No aliases to export");
       return;
     }
-    
-    // Ctrl+G: Focus on email input
-    if (e.ctrlKey && e.key === 'g') {
-      e.preventDefault();
-      document.getElementById('base-email').focus();
-    }
-    
-    // If results are shown, add more shortcuts
-    if (!document.getElementById('results-section').classList.contains('hidden')) {
-      // Right arrow: Next page
-      if (e.key === 'ArrowRight') {
-        const nextBtn = document.getElementById('next-page');
-        if (!nextBtn.disabled) {
-          nextBtn.click();
-        }
-      }
-      
-      // Left arrow: Previous page
-      if (e.key === 'ArrowLeft') {
-        const prevBtn = document.getElementById('prev-page');
-        if (!prevBtn.disabled) {
-          prevBtn.click();
-        }
-      }
-      
-      // R key: Randomize
-      if (e.key === 'r') {
-        document.getElementById('randomize-btn').click();
-      }
-      
-      // C key: Copy all
-      if (e.key === 'c') {
-        document.getElementById('copy-all-btn').click();
-      }
-    }
-  });
-}
 
-// Add to initialization
-document.addEventListener("DOMContentLoaded", () => {
-  // Existing initialization...
-  
-  initializeKeyboardShortcuts();
-});
-/**
- * Optimize performance for large sets of aliases
- */
-function optimizeForLargeAliasSets() {
-  // We'll use virtual scrolling for very large sets
-  const virtualizeAliasRendering = () => {
-    // Only apply this optimization for very large sets (1000+)
-    if (filteredAliases.length < 1000) return;
-    
-    console.log('Using virtualized rendering for large alias set:', filteredAliases.length);
-    
-    // If we have more than 1000 aliases, we'll add a note to the UI
-    const performanceNote = document.createElement('div');
-    performanceNote.className = 'text-sm text-text-muted mb-2';
-    performanceNote.textContent = 'Large alias set detected. Using optimized rendering.';
-    
-    const container = document.getElementById('aliases-container');
-    container.parentNode.insertBefore(performanceNote, container);
-    
-    // We could implement intersection observer or windowing here
-    // For now, we'll just use the pagination to handle this
-  };
-  
-  // Hook into the alias generation workflow
-  const originalHandleFormSubmit = handleFormSubmit;
-  handleFormSubmit = async function(e) {
-    await originalHandleFormSubmit(e);
-    virtualizeAliasRendering();
-  };
-}
+    // Export based on format
+    try {
+      switch (format) {
+        case "txt":
+          exportUtils.exportAsText(filteredAliases);
+          break;
+        case "csv":
+          exportUtils.exportAsCSV(filteredAliases);
+          break;
+        case "xlsx":
+          exportUtils.exportAsXLSX(filteredAliases);
+          break;
+        case "pdf":
+          exportUtils.exportAsPDF(filteredAliases);
+          break;
+        default:
+          throw new Error("Unsupported format");
+      }
 
-// Initialize optimization
-optimizeForLargeAliasSets();
-/**
- * Save and restore user preferences
- */
-function initializeUserPreferences() {
-  // Define preferences we want to save
-  const preferences = {
-    pageSize: 50,
-    filters: {
-      dot: true,
-      plus: true,
-      domain: true,
-      combined: true
-    },
-    theme: 'dark'
-  };
-  
-  // Load preferences from localStorage
-  function loadPreferences() {
-    const savedPrefs = localStorage.getItem('dotlify-preferences');
-    if (savedPrefs) {
-      try {
-        const parsed = JSON.parse(savedPrefs);
-        
-        // Apply page size
-        if (parsed.pageSize) {
-          pageSize = parsed.pageSize;
-          const pageSizeSelect = document.getElementById('page-size');
-          if (pageSizeSelect) {
-            pageSizeSelect.value = pageSize;
+      showToast(
+        `Exported ${filteredAliases.length} aliases as ${format.toUpperCase()}`
+      );
+    } catch (error) {
+      console.error("Export error:", error);
+      showError(`Failed to export as ${format.toUpperCase()}`);
+    }
+  }
+
+  /**
+   * Show an error message
+   * @param {string} message - Error message to show
+   */
+  function showError(message) {
+    alert(message); // Simple alert for errors
+  }
+
+  /**
+   * Show a toast notification
+   * @param {string} message - Message to display
+   * @param {Object} options - Toast options (duration, type, style)
+   */
+  function showToast(message, options = {}) {
+    const { duration = 2000, type = "info", style = "" } = options;
+
+    // Create or get existing toast element
+    let toastElement = document.getElementById("toast");
+
+    if (!toastElement) {
+      toastElement = document.createElement("div");
+      toastElement.id = "toast";
+      document.body.appendChild(toastElement);
+    }
+
+    // Set content and styles
+    toastElement.textContent = message;
+    toastElement.className = `toast ${type} toast-visible`;
+
+    // Apply premium styling for toast
+    toastElement.style.backgroundColor = "var(--bg-card)";
+    toastElement.style.color = "var(--text-primary)";
+    toastElement.style.border = "1px solid var(--primary-light)";
+    toastElement.style.boxShadow = "var(--shadow-md), var(--glow-primary)";
+    toastElement.style.borderRadius = "var(--radius-md)";
+    toastElement.style.fontWeight = "500";
+
+    // Apply any custom styles
+    if (style) {
+      toastElement.style.cssText += style;
+    }
+
+    // Show the toast with animation
+    setTimeout(() => {
+      // Fade in
+      toastElement.style.opacity = "0";
+      toastElement.style.display = "block";
+      toastElement.style.transform = "translateY(20px)";
+
+      setTimeout(() => {
+        toastElement.style.opacity = "1";
+        toastElement.style.transform = "translateY(0)";
+      }, 10);
+
+      // Auto-hide after duration
+      setTimeout(() => {
+        toastElement.style.opacity = "0";
+        toastElement.style.transform = "translateY(-20px)";
+
+        // Remove the element after fade out
+        setTimeout(() => {
+          toastElement.style.display = "none";
+        }, 300);
+      }, duration);
+    }, 10);
+  }
+
+  /**
+   * Validate an email address
+   * @param {string} email - Email address to validate
+   * @returns {boolean} - Whether the email is valid
+   */
+  function isValidEmail(email) {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  /**
+   * Randomize the order of aliases
+   */
+  function randomizeAliases() {
+    if (pageTransitionInProgress || filteredAliases.length === 0) return;
+
+    // Start transition animation
+    pageTransitionInProgress = true;
+    aliasesContainer.classList.add("page-transition");
+
+    setTimeout(() => {
+      // Randomize the order of aliases
+      shuffleArray(filteredAliases);
+
+      // Reset to first page when randomizing
+      currentPage = 1;
+
+      // Update pagination
+      updatePagination();
+
+      // Render current page
+      renderCurrentPage();
+
+      // Complete transition animation
+      setTimeout(() => {
+        aliasesContainer.classList.remove("page-transition");
+        pageTransitionInProgress = false;
+        showToast("Aliases randomized successfully!");
+      }, 50);
+    }, 150);
+  }
+
+  /**
+   * Toggle theme with enhanced animations
+   */
+  function toggleTheme() {
+    // Create a ripple effect on toggle
+    const ripple = document.createElement("div");
+    ripple.style.position = "fixed";
+    ripple.style.top = "0";
+    ripple.style.left = "0";
+    ripple.style.width = "100vw";
+    ripple.style.height = "100vh";
+    ripple.style.backgroundColor = document.documentElement.classList.contains(
+      "dark-mode"
+    )
+      ? "rgba(255, 255, 255, 0.03)"
+      : "rgba(0, 0, 0, 0.03)";
+    ripple.style.zIndex = "-1";
+    ripple.style.opacity = "0";
+    ripple.style.transition = "opacity 0.8s ease-out";
+    document.body.appendChild(ripple);
+
+    // Trigger ripple animation
+    setTimeout(() => {
+      ripple.style.opacity = "1";
+    }, 10);
+
+    // Toggle dark mode class on html and body with a slight delay
+    setTimeout(() => {
+      document.documentElement.classList.toggle("dark-mode");
+      document.body.classList.toggle("dark-mode");
+
+      // Toggle icons visibility with a crossfade effect
+      const isDarkMode = document.body.classList.contains("dark-mode");
+
+      if (isDarkMode) {
+        sunIcon.style.opacity = "0";
+        sunIcon.style.transform = "rotate(-90deg) scale(0.5)";
+        setTimeout(() => {
+          sunIcon.classList.add("hidden");
+          moonIcon.classList.remove("hidden");
+          setTimeout(() => {
+            moonIcon.style.opacity = "1";
+            moonIcon.style.transform = "rotate(0) scale(1)";
+          }, 50);
+        }, 300);
+      } else {
+        moonIcon.style.opacity = "0";
+        moonIcon.style.transform = "rotate(90deg) scale(0.5)";
+        setTimeout(() => {
+          moonIcon.classList.add("hidden");
+          sunIcon.classList.remove("hidden");
+          setTimeout(() => {
+            sunIcon.style.opacity = "1";
+            sunIcon.style.transform = "rotate(0) scale(1)";
+          }, 50);
+        }, 300);
+      }
+
+      // Save preference to localStorage
+      localStorage.setItem("darkMode", isDarkMode.toString());
+
+      // Show a premium toast notification when theme changes
+      const themeType = isDarkMode ? "dark" : "light";
+      showToast(`Switched to ${themeType} theme`, {
+        duration: 3000,
+        style: `background-color: var(--bg-card); color: var(--text-primary); border-left: 4px solid var(--primary-color); box-shadow: var(--glow-primary);`,
+      });
+
+      // Remove ripple after transition
+      setTimeout(() => {
+        ripple.style.opacity = "0";
+        setTimeout(() => {
+          document.body.removeChild(ripple);
+        }, 800);
+      }, 500);
+    }, 100);
+  }
+
+  /**
+   * Initialize theme based on user preference
+   */
+  function initializeTheme() {
+    // Set initial styles for icons
+    sunIcon.style.opacity = "1";
+    sunIcon.style.transform = "rotate(0) scale(1)";
+    moonIcon.style.opacity = "1";
+    moonIcon.style.transform = "rotate(0) scale(1)";
+
+    // Check localStorage
+    const savedTheme = localStorage.getItem("darkMode");
+
+    // Apply dark mode by default unless explicitly set to false in localStorage
+    if (savedTheme !== "false") {
+      document.documentElement.classList.add("dark-mode");
+      document.body.classList.add("dark-mode");
+      sunIcon.classList.add("hidden");
+      moonIcon.classList.remove("hidden");
+
+      // Save the preference if it wasn't saved before
+      if (savedTheme === null) {
+        localStorage.setItem("darkMode", "true");
+      }
+    } else {
+      // Light mode is only used if explicitly set
+      document.documentElement.classList.remove("dark-mode");
+      document.body.classList.remove("dark-mode");
+      sunIcon.classList.remove("hidden");
+      moonIcon.classList.add("hidden");
+    }
+
+    // System preference listener will be ignored for initial load
+    // but kept for future preference changes if user hasn't set a preference
+    if (window.matchMedia) {
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", (e) => {
+          // Only apply if the user hasn't set a preference yet
+          if (localStorage.getItem("darkMode") === null) {
+            if (e.matches) {
+              document.documentElement.classList.add("dark-mode");
+              document.body.classList.add("dark-mode");
+              sunIcon.classList.add("hidden");
+              moonIcon.classList.remove("hidden");
+            } else {
+              document.documentElement.classList.remove("dark-mode");
+              document.body.classList.remove("dark-mode");
+              sunIcon.classList.remove("hidden");
+              moonIcon.classList.add("hidden");
+            }
           }
-        }
-        
-        // Apply filters
-        if (parsed.filters) {
-          const { dot, plus, domain, combined } = parsed.filters;
-          document.getElementById('filter-dot').checked = dot;
-          document.getElementById('filter-plus').checked = plus;
-          document.getElementById('filter-domain').checked = domain;
-          document.getElementById('filter-combined').checked = combined;
-        }
-      } catch (err) {
-        console.error('Error loading preferences:', err);
-      }
+        });
     }
   }
-  
-  // Save preferences to localStorage
-  function savePreferences() {
-    // Get current values
-    preferences.pageSize = pageSize;
-    preferences.filters = {
-      dot: document.getElementById('filter-dot').checked,
-      plus: document.getElementById('filter-plus').checked,
-      domain: document.getElementById('filter-domain').checked,
-      combined: document.getElementById('filter-combined').checked
-    };
-    preferences.theme = document.documentElement.classList.contains('dark-mode') ? 'dark' : 'light';
-    
-    // Save to localStorage
-    localStorage.setItem('dotlify-preferences', JSON.stringify(preferences));
-  }
-  
-  // Add event listeners to save preferences
-  document.getElementById('page-size').addEventListener('change', savePreferences);
-  document.getElementById('filter-dot').addEventListener('change', savePreferences);
-  document.getElementById('filter-plus').addEventListener('change', savePreferences);
-  document.getElementById('filter-domain').addEventListener('change', savePreferences);
-  document.getElementById('filter-combined').addEventListener('change', savePreferences);
-  
-  // Load on start
-  loadPreferences();
-}
 
-// Initialize user preferences
-document.addEventListener('DOMContentLoaded', initializeUserPreferences);
+  // Initialize theme when page loads
+  initializeTheme();
+});
