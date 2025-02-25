@@ -8,9 +8,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom styles -->
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Inline style for dark mode background -->
+    <style>
+        html.dark-mode body { background-color: transparent !important; }
+    </style>
 </head>
 <body class="min-h-screen">
-    <h1>Dotlify</h1>
+    <div class="container mx-auto py-4 md:py-8">
+        <header class="text-center mb-6 md:mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-primary-color mb-2">Dotlify</h1>
+            <p class="text-text-secondary">Generate thousands of email aliases with a single click</p>
+        </header>
+        <main class="rounded-lg shadow-lg p-4 md:p-6 mb-6 md:mb-8">
+            <!-- Content will go here -->
+        </main>
+        <footer class="text-center text-text-muted text-sm mt-4">
+            <p>Dotlify &copy; 2025 - Create unlimited email aliases</p>
+        </footer>
+    </div>
     <!-- JavaScript files -->
     <script src="js/aliasGenerator.js"></script>
     <script src="js/exportUtils.js"></script>
