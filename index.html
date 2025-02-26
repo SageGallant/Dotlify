@@ -20,7 +20,17 @@
             <p class="text-text-secondary">Generate thousands of email aliases with a single click</p>
         </header>
         <main class="rounded-lg shadow-lg p-4 md:p-6 mb-6 md:mb-8">
-            <!-- Content will go here -->
+            <!-- Email input form -->
+            <form id="email-form" class="mb-6 md:mb-8">
+                <div class="mb-4">
+                    <label for="base-email" class="block font-medium mb-2">Your Base Email Address</label>
+                    <div class="flex flex-col sm:flex-row">
+                        <input type="email" id="base-email" placeholder="username@gmail.com" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-color mb-2 sm:mb-0">
+                        <button type="submit" id="generate-btn" class="btn-primary w-full sm:w-auto px-6 py-2 rounded-md sm:rounded-l-none sm:rounded-r-md">Generate</button>
+                    </div>
+                    <p class="text-sm text-text-muted mt-1">Works best with Gmail, Yahoo, and similar services</p>
+                </div>
+            </form>
         </main>
         <footer class="text-center text-text-muted text-sm mt-4">
             <p>Dotlify &copy; 2025 - Create unlimited email aliases</p>
