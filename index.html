@@ -31,6 +31,36 @@
                     <p class="text-sm text-text-muted mt-1">Works best with Gmail, Yahoo, and similar services</p>
                 </div>
             </form>
+            
+            <!-- Generation options and filters -->
+            <div id="options-section" class="mb-6 hidden">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-start">
+                    <div class="options-container mb-4 md:mb-0 md:w-1/2">
+                        <div class="section-header flex justify-between items-center mb-2 cursor-pointer" data-target="alias-options-content">
+                            <h2 class="text-xl font-semibold text-text-primary">Alias Options</h2>
+                            <button class="section-toggle md:hidden" aria-label="Toggle alias options">▼</button>
+                        </div>
+                        <div id="alias-options-content" class="filter-group md:flex md:flex-wrap section-content">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-dot" checked class="form-checkbox h-5 w-5 text-primary-color">
+                                <span class="ml-2">Dot method</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-plus" checked class="form-checkbox h-5 w-5 text-primary-color">
+                                <span class="ml-2">Plus method</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-domain" checked class="form-checkbox h-5 w-5 text-primary-color">
+                                <span class="ml-2">Domain method</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-combined" checked class="form-checkbox h-5 w-5 text-primary-color">
+                                <span class="ml-2">Combined methods</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
         <footer class="text-center text-text-muted text-sm mt-4">
             <p>Dotlify &copy; 2025 - Create unlimited email aliases</p>
