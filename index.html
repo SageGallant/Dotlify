@@ -90,3 +90,23 @@
                 </div>
                 <div id="aliases-container" class="max-h-96 overflow-y-auto"></div>
             </div>
+                <!-- Pagination controls -->
+                <div id="pagination-controls" class="mt-4 hidden">
+                    <div class="pagination-info text-sm text-text-muted">
+                        Showing <span id="page-start">1</span>-<span id="page-end">50</span> of <span id="page-total">0</span> results
+                    </div>
+                    <div class="pagination-buttons flex space-x-1 justify-center">
+                        <button id="prev-page" class="btn-outline px-2 py-1 disabled:opacity-50" disabled>&laquo; Prev</button>
+                        <div id="page-numbers" class="flex space-x-1"></div>
+                        <button id="next-page" class="btn-outline px-2 py-1 disabled:opacity-50" disabled>Next &raquo;</button>
+                    </div>
+                    <div class="flex items-center justify-center mt-2">
+                        <label for="page-size" class="text-sm text-text-muted mr-2">Per page:</label>
+                        <select id="page-size" class="px-2 py-1 border border-gray-300 rounded text-sm">
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                </div>
