@@ -104,3 +104,30 @@ body {
   transform: translateY(0) !important;
   opacity: 1 !important;
 }
+/* Theme toggle button */
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--bg-main);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg), var(--glow-primary);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
