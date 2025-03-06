@@ -68,3 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Existing event listeners...
 });
+/**
+ * Show toast notification
+ */
+function showToast(message, duration = 3000) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('toast-visible');
+  
+  setTimeout(() => {
+    toast.classList.remove('toast-visible');
+  }, duration);
+}
