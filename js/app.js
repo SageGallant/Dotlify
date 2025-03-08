@@ -166,3 +166,155 @@ function shuffleArray(array) {
   }
   return array;
 }
+/**
+ * Render the current page of aliases
+ */
+function renderCurrentPage() {
+  const container = document.getElementById("aliases-container");
+  container.innerHTML = "";
+  
+  // Calculate page range
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredAliases.length);
+  
+  // Update pagination info
+  document.getElementById("page-start").textContent = filteredAliases.length > 0 ? startIndex + 1 : 0;
+  document.getElementById("page-end").textContent = endIndex;
+  document.getElementById("page-total").textContent = filteredAliases.length;
+  
+  // No results case
+  if (filteredAliases.length === 0) {
+    const noResults = document.createElement("div");
+    noResults.className = "text-center py-8 text-text-muted";
+    noResults.textContent = "No aliases found with current filters";
+    container.appendChild(noResults);
+    
+    // Disable pagination buttons
+    document.getElementById("prev-page").disabled = true;
+    document.getElementById("next-page").disabled = true;
+    document.getElementById("pagination-controls").classList.add("hidden");
+    return;
+  }
+  
+  // Enable/disable pagination buttons
+  document.getElementById("prev-page").disabled = currentPage === 1;
+  document.getElementById("next-page").disabled = endIndex >= filteredAliases.length;
+  
+  // Render page numbers
+  renderPageNumbers();
+  
+  // Render aliases for this page
+  for (let i = startIndex; i < endIndex; i++) {
+    const alias = filteredAliases[i];
+    const aliasItem = document.createElement("div");
+    aliasItem.className = "alias-item";
+    aliasItem.dataset.value = alias;
+    
+    const label = document.createElement("span");
+    label.className = "label";
+    
+    // Determine method type
+    if (alias.includes("+")) {
+      label.textContent = "Plus method";
+    } else if (alias.includes(".") && !alias.startsWith(".") && !alias.endsWith(".")) {
+      label.textContent = "Dot method";
+    } else if (alias.split("@")[1] !== currentEmail.split("@")[1]) {
+      label.textContent = "Domain method";
+    } else {
+      label.textContent = "Combined method";
+    }
+    
+    const value = document.createElement("span");
+    value.className = "value";
+    value.textContent = alias;
+    
+    aliasItem.appendChild(label);
+    aliasItem.appendChild(value);
+    
+    // Add click to copy
+    aliasItem.addEventListener("click", () => {
+      navigator.clipboard.writeText(alias)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch(err => console.error("Copy failed:", err));
+    });
+    
+    container.appendChild(aliasItem);
+  }
+}
+
+/**
+ * Render page number buttons
+ */
+function renderPageNumbers() {
+  const pageNumbers = document.getElementById("page-numbers");
+  pageNumbers.innerHTML = "";
+  
+  const totalPages = Math.ceil(filteredAliases.length / pageSize);
+  
+  // Always show first page, current page, and nearby pages
+  const pagesToShow = [];
+  
+  // Mobile optimization - show fewer pages
+  const maxButtons = window.innerWidth < 640 ? 3 : 5;
+  
+  // Always include first and last page
+  pagesToShow.push(1);
+  
+  // Create logical range around current page
+  let rangeStart = Math.max(2, currentPage - Math.floor((maxButtons - 3) / 2));
+  let rangeEnd = Math.min(totalPages - 1, rangeStart + maxButtons - 3);
+  
+  // Adjust range if we're near the end
+  if (rangeEnd <= rangeStart) {
+    rangeEnd = Math.min(totalPages - 1, rangeStart);
+  }
+  
+  // Add range pages
+  for (let i = rangeStart; i <= rangeEnd; i++) {
+    if (!pagesToShow.includes(i)) {
+      pagesToShow.push(i);
+    }
+  }
+  
+  // Add last page if more than one page
+  if (totalPages > 1 && !pagesToShow.includes(totalPages)) {
+    pagesToShow.push(totalPages);
+  }
+  
+  // Sort pages
+  pagesToShow.sort((a, b) => a - b);
+  
+  // Add page number buttons with ellipses
+  let prevPage = 0;
+  for (const pageNum of pagesToShow) {
+    // Add ellipsis if there's a gap
+    if (pageNum > prevPage + 1) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pagination-ellipsis px-2 text-text-muted";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+    
+    // Add page number button
+    addPageNumberButton(pageNum);
+    prevPage = pageNum;
+  }
+  
+  /**
+   * Helper to add a page number button
+   */
+  function addPageNumberButton(pageNum) {
+    const button = document.createElement("button");
+    button.className = `btn-outline px-2 py-1 ${pageNum === currentPage ? 'current' : ''}`;
+    button.textContent = pageNum;
+    
+    button.addEventListener("click", () => {
+      if (pageNum !== currentPage) {
+        currentPage = pageNum;
+        renderCurrentPage();
+      }
+    });
+    
+    pageNumbers.appendChild(button);
+  }
+}
