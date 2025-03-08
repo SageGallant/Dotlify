@@ -318,3 +318,118 @@ function renderPageNumbers() {
     pageNumbers.appendChild(button);
   }
 }
+/**
+ * Initialize event listeners for pagination controls
+ */
+function initializePaginationControls() {
+  // Previous page button
+  document.getElementById("prev-page").addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderCurrentPage();
+    }
+  });
+  
+  // Next page button
+  document.getElementById("next-page").addEventListener("click", () => {
+    const totalPages = Math.ceil(filteredAliases.length / pageSize);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderCurrentPage();
+    }
+  });
+  
+  // Page size selector
+  document.getElementById("page-size").addEventListener("change", (e) => {
+    pageSize = parseInt(e.target.value, 10);
+    currentPage = 1; // Reset to first page
+    renderCurrentPage();
+  });
+}
+
+/**
+ * Initialize event listeners for filter checkboxes
+ */
+function initializeFilterControls() {
+  const filterDot = document.getElementById("filter-dot");
+  const filterPlus = document.getElementById("filter-plus");
+  const filterDomain = document.getElementById("filter-domain");
+  const filterCombined = document.getElementById("filter-combined");
+  
+  const updateFilters = () => {
+    filteredAliases = aliasGenerator.getFilteredAliases({
+      dot: filterDot.checked,
+      plus: filterPlus.checked,
+      domain: filterDomain.checked,
+      combined: filterCombined.checked
+    });
+    
+    currentPage = 1; // Reset to first page
+    renderCurrentPage();
+  };
+  
+  // Add change listeners
+  filterDot.addEventListener("change", updateFilters);
+  filterPlus.addEventListener("change", updateFilters);
+  filterDomain.addEventListener("change", updateFilters);
+  filterCombined.addEventListener("change", updateFilters);
+}
+
+/**
+ * Initialize event listeners for export buttons
+ */
+function initializeExportControls() {
+  // Export buttons
+  document.getElementById("export-txt").addEventListener("click", () => {
+    exportUtils.exportAsText(filteredAliases);
+    showToast("Exported as TXT file");
+  });
+  
+  document.getElementById("export-csv").addEventListener("click", () => {
+    exportUtils.exportAsCSV(filteredAliases);
+    showToast("Exported as CSV file");
+  });
+  
+  document.getElementById("export-xlsx").addEventListener("click", () => {
+    exportUtils.exportAsExcel(filteredAliases);
+    showToast("Exported as Excel file");
+  });
+  
+  document.getElementById("export-pdf").addEventListener("click", () => {
+    exportUtils.exportAsPDF(filteredAliases);
+    showToast("Exported as PDF file");
+  });
+  
+  // Randomize button
+  document.getElementById("randomize-btn").addEventListener("click", () => {
+    shuffleArray(filteredAliases);
+    renderCurrentPage();
+    showToast("Aliases randomized");
+  });
+  
+  // Copy all button
+  document.getElementById("copy-all-btn").addEventListener("click", () => {
+    navigator.clipboard.writeText(filteredAliases.join("\n"))
+      .then(() => showToast("All aliases copied to clipboard!"))
+      .catch(err => console.error("Copy failed:", err));
+  });
+}
+
+// Connect to initialization
+document.addEventListener("DOMContentLoaded", () => {
+  // DOM element references
+  const emailForm = document.getElementById("email-form");
+  const baseEmailInput = document.getElementById("base-email");
+  const generateBtn = document.getElementById("generate-btn");
+  const aliasesContainer = document.getElementById("aliases-container");
+  const loadingIndicator = document.getElementById("loading-indicator");
+  
+  // Initialize all components
+  initializeTheme();
+  initializePaginationControls();
+  initializeFilterControls();
+  initializeExportControls();
+  
+  // Form submission
+  emailForm.addEventListener("submit", handleFormSubmit);
+});
