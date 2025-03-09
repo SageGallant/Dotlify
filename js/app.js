@@ -433,3 +433,32 @@ document.addEventListener("DOMContentLoaded", () => {
   // Form submission
   emailForm.addEventListener("submit", handleFormSubmit);
 });
+/**
+ * Initialize collapsible sections
+ */
+function initializeCollapsibleSections() {
+  const sectionHeaders = document.querySelectorAll('.section-header');
+  
+  sectionHeaders.forEach(header => {
+    const targetId = header.dataset.target;
+    const targetContent = document.getElementById(targetId);
+    const toggle = header.querySelector('.section-toggle');
+    
+    if (!targetContent || !toggle) return;
+    
+    header.addEventListener('click', () => {
+      // Only apply on mobile
+      if (window.innerWidth < 768) {
+        toggle.classList.toggle('collapsed');
+        targetContent.classList.toggle('collapsed');
+      }
+    });
+  });
+}
+
+// Add to initialization
+document.addEventListener("DOMContentLoaded", () => {
+  // Existing initialization...
+  
+  initializeCollapsibleSections();
+});
