@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Dotlify - Email Alias Generator</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,79 +19,193 @@
         html.dark-mode body { background-color: transparent !important; }
     </style>
 </head>
+
 <body class="min-h-screen">
+    <!-- Background Elements -->
+    <div class="background-elements">
+        <div class="bg-circle circle-1"></div>
+        <div class="bg-circle circle-2"></div>
+        <div class="bg-circle circle-3"></div>
+        <div class="bg-circle circle-4"></div>
+        <div class="bg-circle circle-5"></div>
+    </div>
+
+    <!-- Theme toggle button -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
     <div class="container mx-auto py-4 md:py-8">
         <header class="text-center mb-6 md:mb-10">
             <h1 class="text-3xl md:text-4xl font-bold text-primary-color mb-2">Dotlify</h1>
             <p class="text-text-secondary">Generate thousands of email aliases with a single click</p>
         </header>
+
         <main class="rounded-lg shadow-lg p-4 md:p-6 mb-6 md:mb-8">
             <!-- Email input form -->
             <form id="email-form" class="mb-6 md:mb-8">
                 <div class="mb-4">
                     <label for="base-email" class="block font-medium mb-2">Your Base Email Address</label>
                     <div class="flex flex-col sm:flex-row">
-                        <input type="email" id="base-email" placeholder="username@gmail.com" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-color mb-2 sm:mb-0">
-                        <button type="submit" id="generate-btn" class="btn-primary w-full sm:w-auto px-6 py-2 rounded-md sm:rounded-l-none sm:rounded-r-md">Generate</button>
+                        <input type="email" id="base-email" placeholder="username@gmail.com" required
+                            class="w-full px-4 py-2 border rounded-md sm:rounded-l-md sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-primary-color mb-2 sm:mb-0">
+                        <button type="submit" id="generate-btn"
+                            class="btn-primary w-full sm:w-auto px-6 py-2 rounded-md sm:rounded-l-none sm:rounded-r-md">
+                            Generate
+                        </button>
                     </div>
                     <p class="text-sm text-text-muted mt-1">Works best with Gmail, Yahoo, and similar services</p>
                 </div>
             </form>
-            
+
             <!-- Generation options and filters -->
             <div id="options-section" class="mb-6 hidden">
                 <div class="flex flex-col md:flex-row md:justify-between md:items-start">
                     <div class="options-container mb-4 md:mb-0 md:w-1/2">
-                        <div class="section-header flex justify-between items-center mb-2 cursor-pointer" data-target="alias-options-content">
+                        <div class="section-header flex justify-between items-center mb-2 cursor-pointer"
+                            data-target="alias-options-content">
                             <h2 class="text-xl font-semibold text-text-primary">Alias Options</h2>
-                            <button class="section-toggle md:hidden" aria-label="Toggle alias options">▼</button>
+                            <button class="section-toggle md:hidden" aria-label="Toggle alias options">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
                         <div id="alias-options-content" class="filter-group md:flex md:flex-wrap section-content">
-                            <label class="flex items-center">
-                                <input type="checkbox" id="filter-dot" checked class="form-checkbox h-5 w-5 text-primary-color">
-                                <span class="ml-2">Dot method</span>
+                            <label class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="filter-dot" checked
+                                        class="form-checkbox h-5 w-5 text-primary-color">
+                                    <span class="ml-2">Dot method</span>
+                                </div>
+                                <span id="dot-count" class="alias-count">0</span>
                             </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="filter-plus" checked class="form-checkbox h-5 w-5 text-primary-color">
-                                <span class="ml-2">Plus method</span>
+                            <label class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="filter-plus" checked
+                                        class="form-checkbox h-5 w-5 text-primary-color">
+                                    <span class="ml-2">Plus method</span>
+                                </div>
+                                <span id="plus-count" class="alias-count">0</span>
                             </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="filter-domain" checked class="form-checkbox h-5 w-5 text-primary-color">
-                                <span class="ml-2">Domain method</span>
+                            <label class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="filter-domain" checked
+                                        class="form-checkbox h-5 w-5 text-primary-color">
+                                    <span class="ml-2">Domain method</span>
+                                </div>
+                                <span id="domain-count" class="alias-count">0</span>
                             </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="filter-combined" checked class="form-checkbox h-5 w-5 text-primary-color">
-                                <span class="ml-2">Combined methods</span>
+                            <label class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="filter-combined" checked
+                                        class="form-checkbox h-5 w-5 text-primary-color">
+                                    <span class="ml-2">Combined methods</span>
+                                </div>
+                                <span id="combined-count" class="alias-count">0</span>
                             </label>
                         </div>
                     </div>
-                    
-                    <!-- Export section -->
-                    <div class="export-container mb-4 md:w-1/2">
-                        <h3 class="section-header flex justify-between items-center" data-target="export-options-content">
+
+                    <!-- Export section with premium styling -->
+                    <div class="export-container mb-4">
+                        <h3 class="section-header flex justify-between items-center"
+                            data-target="export-options-content">
                             <span class="text-lg font-medium">Download as</span>
-                            <button class="section-toggle" aria-label="Toggle download options">▼</button>
+                            <button class="section-toggle" aria-label="Toggle download options">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
                         </h3>
                         <div id="export-options-content" class="section-content">
-                            <div class="export-group flex flex-col md:flex-row gap-2">
+                            <div class="export-group" id="export-options">
                                 <button id="export-txt" class="export-btn" data-format="txt">
                                     <div class="export-btn-content">
-                                        <span class="export-icon">TXT</span><span class="export-label">TXT</span>
+                                        <span class="export-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                        </span>
+                                        <span class="export-label">TXT</span>
                                     </div>
                                 </button>
                                 <button id="export-csv" class="export-btn" data-format="csv">
                                     <div class="export-btn-content">
-                                        <span class="export-icon">CSV</span><span class="export-label">CSV</span>
+                                        <span class="export-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                        </span>
+                                        <span class="export-label">CSV</span>
                                     </div>
                                 </button>
                                 <button id="export-xlsx" class="export-btn" data-format="xlsx">
                                     <div class="export-btn-content">
-                                        <span class="export-icon">Excel</span><span class="export-label">Excel</span>
+                                        <span class="export-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <rect x="8" y="12" width="8" height="8"></rect>
+                                                <path d="M10 12v-4"></path>
+                                                <path d="M14 12v-4"></path>
+                                            </svg>
+                                        </span>
+                                        <span class="export-label">Excel</span>
                                     </div>
                                 </button>
                                 <button id="export-pdf" class="export-btn" data-format="pdf">
                                     <div class="export-btn-content">
-                                        <span class="export-icon">PDF</span><span class="export-label">PDF</span>
+                                        <span class="export-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                        </span>
+                                        <span class="export-label">PDF</span>
                                     </div>
                                 </button>
                             </div>
@@ -97,8 +213,8 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Results section (initially hidden) -->
+
+            <!-- Results -->
             <div id="results-section" class="hidden">
                 <div class="controls-container mb-4">
                     <div class="flex flex-col sm:flex-row gap-2 justify-end">
@@ -115,42 +231,23 @@
                     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-color"></div>
                 </div>
                 <div id="aliases-container" class="max-h-96 overflow-y-auto"></div>
-                
-                <!-- Pagination controls -->
-                <div id="pagination-controls" class="mt-4 hidden">
-                    <div class="pagination-info text-sm text-text-muted">
-                        Showing <span id="page-start">1</span>-<span id="page-end">50</span> of <span id="page-total">0</span> results
-                    </div>
-                    <div class="pagination-buttons flex space-x-1 justify-center">
-                        <button id="prev-page" class="btn-outline px-2 py-1 disabled:opacity-50" disabled>&laquo; Prev</button>
-                        <div id="page-numbers" class="flex space-x-1"></div>
-                        <button id="next-page" class="btn-outline px-2 py-1 disabled:opacity-50" disabled>Next &raquo;</button>
-                    </div>
-                    <div class="flex items-center justify-center mt-2">
-                        <label for="page-size" class="text-sm text-text-muted mr-2">Per page:</label>
-                        <select id="page-size" class="px-2 py-1 border border-gray-300 rounded text-sm">
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
-                </div>
             </div>
         </main>
+
         <footer class="text-center text-text-muted text-sm mt-4">
             <p>Dotlify &copy; 2025 - Create unlimited email aliases</p>
         </footer>
     </div>
-    
+
     <!-- Toast notification -->
     <div id="toast" class="bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
         Copied to clipboard!
     </div>
-    
+
     <!-- JavaScript files -->
     <script src="js/aliasGenerator.js"></script>
     <script src="js/exportUtils.js"></script>
     <script src="js/app.js"></script>
 </body>
+
 </html>
