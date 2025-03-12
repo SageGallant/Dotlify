@@ -495,3 +495,83 @@ function initializeTheme() {
     }
   });
 }
+/**
+ * Enhanced theme toggle with animation
+ */
+function initializeTheme() {
+  const themeToggle = document.getElementById('theme-toggle');
+  const sunIcon = document.getElementById('sun-icon');
+  const moonIcon = document.getElementById('moon-icon');
+  const body = document.body;
+  
+  // Set dark theme as default unless explicitly set to light
+  const savedTheme = localStorage.getItem('theme');
+  
+  if (savedTheme !== 'light') {
+    document.documentElement.classList.add('dark-mode');
+    sunIcon.classList.add('hidden');
+    moonIcon.classList.remove('hidden');
+  }
+  
+  // Add toggle functionality with enhanced animation
+  themeToggle.addEventListener('click', () => {
+    // Create ripple effect element
+    const ripple = document.createElement('div');
+    ripple.style.position = 'fixed';
+    ripple.style.top = '0';
+    ripple.style.left = '0';
+    ripple.style.width = '100vw';
+    ripple.style.height = '100vh';
+    ripple.style.backgroundColor = document.documentElement.classList.contains('dark-mode') 
+      ? 'rgba(255, 255, 255, 0.03)' 
+      : 'rgba(0, 0, 0, 0.03)';
+    ripple.style.zIndex = '-1';
+    ripple.style.opacity = '0';
+    ripple.style.transition = 'opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
+    
+    document.body.appendChild(ripple);
+    
+    // Trigger animation
+    setTimeout(() => {
+      ripple.style.opacity = '1';
+    }, 10);
+    
+    // Add animation to icons
+    if (document.documentElement.classList.contains('dark-mode')) {
+      moonIcon.style.transform = 'rotate(360deg) scale(0)';
+      
+      setTimeout(() => {
+        document.documentElement.classList.remove('dark-mode');
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+        sunIcon.style.transform = 'rotate(0) scale(1)';
+      }, 150);
+    } else {
+      sunIcon.style.transform = 'rotate(-360deg) scale(0)';
+      
+      setTimeout(() => {
+        document.documentElement.classList.add('dark-mode');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        moonIcon.style.transform = 'rotate(0) scale(1)';
+      }, 150);
+    }
+    
+    // Save the preference
+    if (!document.documentElement.classList.contains('dark-mode')) {
+      localStorage.setItem('theme', 'light');
+      showToast('Switched to light theme');
+    } else {
+      localStorage.setItem('theme', 'dark');
+      showToast('Switched to dark theme');
+    }
+    
+    // Clean up ripple
+    setTimeout(() => {
+      ripple.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(ripple);
+      }, 800);
+    }, 800);
+  });
+}
