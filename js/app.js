@@ -575,3 +575,143 @@ function initializeTheme() {
     }, 800);
   });
 }
+/**
+ * Updated render page numbers for mobile optimization
+ */
+function renderPageNumbers() {
+  const pageNumbers = document.getElementById("page-numbers");
+  pageNumbers.innerHTML = "";
+  
+  const totalPages = Math.ceil(filteredAliases.length / pageSize);
+  
+  // No pages case
+  if (totalPages === 0) {
+    return;
+  }
+  
+  // Single page case - just show page 1
+  if (totalPages === 1) {
+    addPageNumberButton(1);
+    return;
+  }
+  
+  // Mobile check - show fewer pages on small screens
+  const isMobile = window.innerWidth < 640;
+  
+  // On mobile, just show first, current, and last page
+  if (isMobile) {
+    // First page
+    addPageNumberButton(1);
+    
+    // Current page (if not first or last)
+    if (currentPage > 1 && currentPage < totalPages) {
+      if (currentPage > 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        pageNumbers.appendChild(ellipsis);
+      }
+      
+      addPageNumberButton(currentPage);
+    }
+    
+    // Last page (if more than one page)
+    if (totalPages > 1) {
+      if (currentPage < totalPages - 1) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        pageNumbers.appendChild(ellipsis);
+      }
+      
+      addPageNumberButton(totalPages);
+    }
+  } 
+  // Desktop - show more pages
+  else {
+    // Always show first page
+    addPageNumberButton(1);
+    
+    // Calculate range around current page
+    let rangeStart = Math.max(2, currentPage - 1);
+    let rangeEnd = Math.min(totalPages - 1, rangeStart + 2);
+    
+    // Adjust range if at the end
+    if (rangeEnd >= totalPages - 1) {
+      rangeEnd = totalPages - 1;
+      rangeStart = Math.max(2, rangeEnd - 2);
+    }
+    
+    // Add ellipsis if needed
+    if (rangeStart > 2) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pagination-ellipsis";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+    
+    // Add range pages
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      addPageNumberButton(i);
+    }
+    
+    // Add ellipsis if needed
+    if (rangeEnd < totalPages - 1) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pagination-ellipsis";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+    
+    // Add last page if more than one page
+    if (totalPages > 1) {
+      addPageNumberButton(totalPages);
+    }
+  }
+  
+  // Helper to add a page number button
+  function addPageNumberButton(pageNum) {
+    const button = document.createElement("button");
+    const isCurrentPage = pageNum === currentPage;
+    
+    // Styling for current vs other pages - supports dark mode
+    if (isCurrentPage) {
+      button.className = 'btn-outline px-2 py-1 current';
+      // Better styling for dark mode with CSS variables
+      button.style.backgroundColor = 'var(--primary-color)';
+      button.style.borderColor = 'var(--primary-color)';
+      button.style.color = 'white';
+    } else {
+      button.className = 'btn-outline px-2 py-1';
+    }
+    
+    button.textContent = pageNum;
+    
+    button.addEventListener("click", () => {
+      if (pageNum !== currentPage) {
+        currentPage = pageNum;
+        renderCurrentPage();
+      }
+    });
+    
+    pageNumbers.appendChild(button);
+  }
+}
+
+// Add window resize handler to update pagination for different screen sizes
+window.addEventListener('resize', debounce(() => {
+  if (filteredAliases.length > 0) {
+    renderPageNumbers();
+  }
+}, 250));
+
+// Debounce helper
+function debounce(func, wait) {
+  let timeout;
+  return function() {
+    const context = this;
+    const args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
