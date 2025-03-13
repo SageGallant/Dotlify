@@ -651,3 +651,63 @@ body {
     border-color 0.5s ease, 
     box-shadow 0.5s ease;
 }
+/* Improved mobile pagination styling */
+@media (max-width: 640px) {
+  #pagination-controls {
+    margin-top: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+  }
+  
+  #page-numbers {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    max-width: 150px;
+    margin: 0 auto;
+  }
+  
+  #page-numbers button {
+    min-width: 38px;
+    height: 38px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  
+  #prev-page, #next-page {
+    padding: 0.5rem 1rem;
+    min-width: 72px;
+    font-weight: 500;
+  }
+  
+  .pagination-ellipsis {
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+  }
+  
+  /* Hide pagination on very small screens */
+  @media (max-width: 320px) {
+    .pagination-ellipsis {
+      display: none;
+    }
+    
+    #page-numbers {
+      max-width: 120px;
+    }
+    
+    #prev-page, #next-page {
+      min-width: 60px;
+      padding: 0.5rem;
+    }
+  }
+}
