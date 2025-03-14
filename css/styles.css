@@ -718,3 +718,43 @@ body {
   -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+/* Ensuring complete glass morphism throughout the application */
+body {
+  transition: all 0.5s ease;
+}
+
+#aliases-container, .pagination-buttons, select, input {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+
+#results-section, .controls-container, #aliases-container, #pagination-controls {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.dark-mode #results-section, 
+.dark-mode .controls-container, 
+.dark-mode #aliases-container, 
+.dark-mode #pagination-controls {
+  background: rgba(30, 30, 30, 0.3);
+}
+
+/* Enhance input fields */
+input[type="email"]:focus, select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+/* Button active states */
+.btn-primary:active, 
+.btn-secondary:active, 
+.export-btn:active, 
+.btn-outline:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.4), var(--glow-primary) !important;
+}
