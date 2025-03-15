@@ -722,3 +722,65 @@ function debounce(func, wait) {
 // - Functions for calculating statistics
 
 // This commit removes those elements to create a cleaner, more focused interface
+/**
+ * Enhanced alias count updates with animation
+ */
+function updateAliasCounts(counts) {
+  animateCountUpdate('dot-count', counts.dot);
+  animateCountUpdate('plus-count', counts.plus);
+  animateCountUpdate('domain-count', counts.domain);
+  animateCountUpdate('combined-count', counts.combined);
+  
+  /**
+   * Helper to animate count updates
+   */
+  function animateCountUpdate(elementId, targetCount) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    // Get current count
+    const currentCount = parseInt(element.textContent) || 0;
+    
+    // If no change, skip animation
+    if (currentCount === targetCount) {
+      return;
+    }
+    
+    // Determine if counting up or down
+    const isIncreasing = targetCount > currentCount;
+    
+    // Animate over 500ms
+    const duration = 500;
+    const startTime = performance.now();
+    
+    requestAnimationFrame(function updateCount(timestamp) {
+      // Calculate progress (0-1)
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Use easing function for smoother animation
+      const easedProgress = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      
+      // Calculate current value
+      let currentValue;
+      if (isIncreasing) {
+        currentValue = Math.floor(currentCount + (targetCount - currentCount) * easedProgress);
+      } else {
+        currentValue = Math.ceil(currentCount - (currentCount - targetCount) * easedProgress);
+      }
+      
+      // Update element
+      element.textContent = currentValue;
+      
+      // Continue animation if not complete
+      if (progress < 1) {
+        requestAnimationFrame(updateCount);
+      } else {
+        // Ensure final value is exactly the target
+        element.textContent = targetCount;
+      }
+    });
+  }
+}
