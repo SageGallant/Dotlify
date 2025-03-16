@@ -779,3 +779,30 @@ input[type="email"]:focus, select:focus {
   transform: translateY(0) !important;
   opacity: 1 !important;
 }
+/* Pagination improvements for mobile - one final polish */
+@media (max-width: 640px) {
+  .pagination-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+  
+  #pagination-controls {
+    padding: 0.75rem;
+  }
+  
+  #page-numbers {
+    justify-content: center;
+    overflow: visible;
+    max-width: 100%;
+  }
+  
+  #prev-page, #next-page {
+    font-size: 0.9rem;
+  }
+  
+  #page-size {
+    margin-top: 0.5rem;
+  }
+}
