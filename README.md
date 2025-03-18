@@ -54,3 +54,7 @@ MIT License - See LICENSE file for details
 ## Credits
 
 Developed by SageGallant
+
+## Version 1.0
+
+Initial release - February 4, 2025
