@@ -806,3 +806,59 @@ input[type="email"]:focus, select:focus {
     margin-top: 0.5rem;
   }
 }
+/* Final UI polish for version 1.0 */
+
+/* Subtle hover animations */
+main, .options-container, .export-container, .alias-item, .export-btn {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+main:hover {
+  box-shadow: 0 10px 40px rgba(138, 43, 226, 0.15);
+}
+
+.alias-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.1);
+}
+
+/* Typography improvements */
+h1 {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* Accessibility improvements */
+:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .theme-toggle, 
+  #randomize-btn, 
+  #copy-all-btn, 
+  .export-container,
+  .options-container {
+    display: none !important;
+  }
+  
+  main, .alias-item {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .alias-item .label {
+    color: #555 !important;
+  }
+  
+  .alias-item .value {
+    color: black !important;
+  }
+}
