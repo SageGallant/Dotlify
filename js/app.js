@@ -870,3 +870,78 @@ function optimizeForLargeAliasSets() {
 
 // Initialize optimization
 optimizeForLargeAliasSets();
+/**
+ * Save and restore user preferences
+ */
+function initializeUserPreferences() {
+  // Define preferences we want to save
+  const preferences = {
+    pageSize: 50,
+    filters: {
+      dot: true,
+      plus: true,
+      domain: true,
+      combined: true
+    },
+    theme: 'dark'
+  };
+  
+  // Load preferences from localStorage
+  function loadPreferences() {
+    const savedPrefs = localStorage.getItem('dotlify-preferences');
+    if (savedPrefs) {
+      try {
+        const parsed = JSON.parse(savedPrefs);
+        
+        // Apply page size
+        if (parsed.pageSize) {
+          pageSize = parsed.pageSize;
+          const pageSizeSelect = document.getElementById('page-size');
+          if (pageSizeSelect) {
+            pageSizeSelect.value = pageSize;
+          }
+        }
+        
+        // Apply filters
+        if (parsed.filters) {
+          const { dot, plus, domain, combined } = parsed.filters;
+          document.getElementById('filter-dot').checked = dot;
+          document.getElementById('filter-plus').checked = plus;
+          document.getElementById('filter-domain').checked = domain;
+          document.getElementById('filter-combined').checked = combined;
+        }
+      } catch (err) {
+        console.error('Error loading preferences:', err);
+      }
+    }
+  }
+  
+  // Save preferences to localStorage
+  function savePreferences() {
+    // Get current values
+    preferences.pageSize = pageSize;
+    preferences.filters = {
+      dot: document.getElementById('filter-dot').checked,
+      plus: document.getElementById('filter-plus').checked,
+      domain: document.getElementById('filter-domain').checked,
+      combined: document.getElementById('filter-combined').checked
+    };
+    preferences.theme = document.documentElement.classList.contains('dark-mode') ? 'dark' : 'light';
+    
+    // Save to localStorage
+    localStorage.setItem('dotlify-preferences', JSON.stringify(preferences));
+  }
+  
+  // Add event listeners to save preferences
+  document.getElementById('page-size').addEventListener('change', savePreferences);
+  document.getElementById('filter-dot').addEventListener('change', savePreferences);
+  document.getElementById('filter-plus').addEventListener('change', savePreferences);
+  document.getElementById('filter-domain').addEventListener('change', savePreferences);
+  document.getElementById('filter-combined').addEventListener('change', savePreferences);
+  
+  // Load on start
+  loadPreferences();
+}
+
+// Initialize user preferences
+document.addEventListener('DOMContentLoaded', initializeUserPreferences);
