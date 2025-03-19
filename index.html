@@ -14,9 +14,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <!-- Inline style for dark mode background -->
+    <!-- Inline style to ensure dark mode works everywhere -->
     <style>
-        html.dark-mode body { background-color: transparent !important; }
+        html.dark-mode,
+        html.dark-mode body {
+            background-color: transparent !important;
+        }
     </style>
 </head>
 
@@ -219,6 +222,15 @@
                 <div class="controls-container mb-4">
                     <div class="flex flex-col sm:flex-row gap-2 justify-end">
                         <button id="randomize-btn" class="btn-secondary w-full sm:w-auto px-4 py-2 rounded">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="16 3 21 3 21 8"></polyline>
+                                <line x1="4" y1="20" x2="21" y2="3"></line>
+                                <polyline points="21 16 21 21 16 21"></polyline>
+                                <line x1="15" y1="15" x2="21" y2="21"></line>
+                                <line x1="4" y1="4" x2="9" y2="9"></line>
+                            </svg>
                             Randomize
                         </button>
                         <button id="copy-all-btn" class="btn-primary w-full sm:w-auto px-4 py-2 rounded">
@@ -230,21 +242,55 @@
                 <div id="loading-indicator" class="flex justify-center items-center py-8 hidden">
                     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-color"></div>
                 </div>
-                <div id="aliases-container" class="max-h-96 overflow-y-auto"></div>
+
+                <!-- Results container - already styled in CSS -->
+                <div id="aliases-container" class="max-h-96 overflow-y-auto">
+                    <!-- Aliases will be dynamically added here -->
+                </div>
+
+                <!-- Pagination controls -->
+                <div id="pagination-controls" class="mt-4 hidden">
+                    <div class="pagination-info text-sm text-text-muted text-center-mobile">
+                        Showing <span id="page-start">1</span>-<span id="page-end">50</span> of <span
+                            id="page-total">0</span> results
+                    </div>
+                    <div class="pagination-buttons">
+                        <button id="prev-page"
+                            class="btn-outline px-2 sm:px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                            &laquo; Prev
+                        </button>
+                        <div id="page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be dynamically added here -->
+                        </div>
+                        <button id="next-page"
+                            class="btn-outline px-2 sm:px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next &raquo;
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <label for="page-size" class="text-sm text-text-muted mr-2">Per page:</label>
+                        <select id="page-size" class="px-2 py-1 border border-gray-300 rounded text-sm">
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </main>
 
         <footer class="text-center text-text-muted text-sm mt-4">
-            <p>Dotlify &copy; 2025 - Create unlimited email aliases</p>
+            <p>Dotlify &copy; 2023 - Create unlimited email aliases</p>
         </footer>
     </div>
 
-    <!-- Toast notification -->
+    <!-- Toast notification for copy -->
     <div id="toast" class="bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
         Copied to clipboard!
     </div>
 
-    <!-- JavaScript files -->
+    <!-- JavaScript -->
     <script src="js/aliasGenerator.js"></script>
     <script src="js/exportUtils.js"></script>
     <script src="js/app.js"></script>
