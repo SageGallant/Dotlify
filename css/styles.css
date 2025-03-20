@@ -266,7 +266,9 @@ html.dark-mode,
 
 /* Toast animation */
 .toast-visible {
-  transform: translateY(4.5rem) !important;
+  transform: translateY(
+    4.5rem
+  ) !important; /* Keep vertical movement but no horizontal movement */
   opacity: 1 !important;
 }
 
@@ -278,8 +280,8 @@ html.dark-mode,
   animation-fill-mode: forwards;
   position: fixed;
   top: -50px; /* Start above viewport */
-  left: 50%;
-  transform: translateX(-50%);
+  left: 1.5rem; /* Position on the left side instead of center */
+  transform: translateX(0); /* Remove the centering transform */
   opacity: 0;
   transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   border-radius: var(--radius-md);
@@ -291,7 +293,7 @@ html.dark-mode,
   color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 500;
-  text-align: center;
+  text-align: left; /* Align text to the left */
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
 
@@ -654,9 +656,8 @@ button {
 
   #toast {
     max-width: 80%;
-    left: auto;
-    right: 1.5rem;
-    transform: translateY(-100%);
+    left: 1.5rem; /* Keep it on the left side */
+    transform: translateY(-100%); /* Maintain vertical movement only */
     text-align: left;
   }
 
@@ -686,6 +687,11 @@ button {
     flex-direction: row;
     justify-content: space-between;
     padding: 0.75rem 1rem;
+  }
+
+  /* Update for larger screens to match the media query */
+  .toast-visible {
+    transform: translateY(4.5rem) !important; /* Keep consistent positioning */
   }
 }
 
