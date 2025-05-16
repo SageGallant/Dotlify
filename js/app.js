@@ -231,6 +231,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Check if we're on a hosted environment
+    const isHosted =
+      typeof window !== "undefined" &&
+      window.location &&
+      window.location.hostname !== "localhost";
+    const username = currentEmail.split("@")[0];
+
+    // Show a warning for extremely long usernames on hosted environments
+    if (isHosted && username.length > 25) {
+      if (
+        !confirm(
+          "Very long email addresses (25+ characters) may cause performance issues. The app will generate fewer combinations for better performance. Continue?"
+        )
+      ) {
+        return;
+      }
+    }
+
     // Show loading state
     generateBtn.disabled = true;
     generateBtn.innerText = "Generating...";
@@ -240,13 +258,25 @@ document.addEventListener("DOMContentLoaded", () => {
     aliasesContainer.innerHTML = "";
 
     // Add a progress message for long email addresses
-    const username = currentEmail.split("@")[0];
     if (username.length > 12) {
+      // Different message based on username length and environment
+      let maxAliases = 15000;
+      if (isHosted) {
+        maxAliases = username.length >= 25 ? 7000 : 10000;
+      }
+
       loadingIndicator.innerHTML = `
         <div class="flex flex-col items-center">
           <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-color mb-4"></div>
-          <p class="text-text-primary">Processing ${username.length}-character email...</p>
-          <p class="text-text-muted text-sm mt-2">Optimizing for performance (max 15,000 aliases)</p>
+          <p class="text-text-primary">Processing ${
+            username.length
+          }-character email...</p>
+          <p class="text-text-muted text-sm mt-2">Optimizing for performance (max ${maxAliases.toLocaleString()} aliases)</p>
+          ${
+            isHosted
+              ? '<p class="text-text-muted text-sm">Using optimized settings for hosted environment</p>'
+              : ""
+          }
         </div>
       `;
     }
@@ -370,22 +400,46 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function generateAliasesAsync(email) {
     return new Promise((resolve) => {
-      // Check if the email username is long (performance optimization)
+      // Check if we're on a hosted environment
+      const isHosted =
+        typeof window !== "undefined" &&
+        window.location &&
+        window.location.hostname !== "localhost";
       const username = email.split("@")[0];
       const isLongUsername = username.length > 12;
+      const isVeryLongUsername = username.length >= 20;
+      const isExtremelyLongUsername = username.length >= 25;
 
-      // For very long usernames, add more delay to allow UI updates
-      const delay = isLongUsername ? 100 : 0;
+      // Adjust delay based on environment and username length
+      let delay = 0;
+      if (isHosted) {
+        delay = isExtremelyLongUsername
+          ? 200
+          : isVeryLongUsername
+          ? 150
+          : isLongUsername
+          ? 100
+          : 50;
+      } else {
+        delay = isVeryLongUsername ? 100 : isLongUsername ? 50 : 0;
+      }
 
       // Use setTimeout to prevent UI blocking during heavy computation
       setTimeout(() => {
-        // For extremely long usernames, process in chunks with yield to UI thread
-        if (username.length > 20) {
-          // Let the browser breathe by yielding control back for a moment
-          setTimeout(() => {
-            const result = aliasGenerator.generateAliases(email);
-            resolve(result);
-          }, 0);
+        // For extremely long usernames, we need to break up processing
+        // to avoid freezing the UI
+        if (isVeryLongUsername) {
+          // Use a simulated Web Worker approach for better UI responsiveness
+          setTimeout(
+            () => {
+              // Process in a new execution context to allow UI updates
+              setTimeout(() => {
+                const result = aliasGenerator.generateAliases(email);
+                resolve(result);
+              }, 0);
+            },
+            isHosted ? 100 : 50
+          );
         } else {
           // Standard processing for normal usernames
           const result = aliasGenerator.generateAliases(email);
