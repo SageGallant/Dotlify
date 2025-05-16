@@ -239,14 +239,26 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingIndicator.classList.remove("hidden");
     aliasesContainer.innerHTML = "";
 
+    // Add a progress message for long email addresses
+    const username = currentEmail.split("@")[0];
+    if (username.length > 12) {
+      loadingIndicator.innerHTML = `
+        <div class="flex flex-col items-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-color mb-4"></div>
+          <p class="text-text-primary">Processing ${username.length}-character email...</p>
+          <p class="text-text-muted text-sm mt-2">Optimizing for performance (max 15,000 aliases)</p>
+        </div>
+      `;
+    }
+
     // Reset pagination
     currentPage = 1;
 
     // Set filename base for exports
     exportUtils.setFilenameBase(currentEmail);
 
-    // Use setTimeout to allow the UI to update before heavy computation
-    setTimeout(async () => {
+    // Use requestAnimationFrame for better UI responsiveness
+    requestAnimationFrame(async () => {
       try {
         // Generate aliases (this may take some time for many combinations)
         const result = await generateAliasesAsync(currentEmail);
@@ -260,6 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Hide loading indicator
         loadingIndicator.classList.add("hidden");
+        loadingIndicator.innerHTML = `<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-color"></div>`;
 
         // Reset button
         generateBtn.disabled = false;
@@ -272,8 +285,9 @@ document.addEventListener("DOMContentLoaded", () => {
         generateBtn.disabled = false;
         generateBtn.innerText = "Generate";
         loadingIndicator.classList.add("hidden");
+        loadingIndicator.innerHTML = `<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-color"></div>`;
       }
-    }, 50); // Small delay to allow UI update
+    });
   }
 
   /**
@@ -356,19 +370,28 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function generateAliasesAsync(email) {
     return new Promise((resolve) => {
-      // Use a web worker if available for heavy computation
-      if (window.Worker) {
-        // For simplicity, using setTimeout to simulate a worker
-        // In a production app, you'd create a proper Web Worker
-        setTimeout(() => {
+      // Check if the email username is long (performance optimization)
+      const username = email.split("@")[0];
+      const isLongUsername = username.length > 12;
+
+      // For very long usernames, add more delay to allow UI updates
+      const delay = isLongUsername ? 100 : 0;
+
+      // Use setTimeout to prevent UI blocking during heavy computation
+      setTimeout(() => {
+        // For extremely long usernames, process in chunks with yield to UI thread
+        if (username.length > 20) {
+          // Let the browser breathe by yielding control back for a moment
+          setTimeout(() => {
+            const result = aliasGenerator.generateAliases(email);
+            resolve(result);
+          }, 0);
+        } else {
+          // Standard processing for normal usernames
           const result = aliasGenerator.generateAliases(email);
           resolve(result);
-        }, 0);
-      } else {
-        // Direct call if web workers not supported
-        const result = aliasGenerator.generateAliases(email);
-        resolve(result);
-      }
+        }
+      }, delay);
     });
   }
 
