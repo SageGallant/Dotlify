@@ -812,6 +812,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add hover effect
     aliasItem.addEventListener("mouseenter", () => {
+      // Don't apply hover effects if we're in the middle of a click action
+      if (aliasItem.classList.contains("being-clicked")) return;
+
       aliasItem.style.transform = "translateY(-3px)";
       aliasItem.style.boxShadow =
         "var(--glow-" +
@@ -834,15 +837,22 @@ document.addEventListener("DOMContentLoaded", () => {
           : "accent") +
         "-color)";
 
+      // Blur the content
+      textSpan.style.filter = "blur(3px)";
+
       // Add copy indicator
-      const copyHint = document.createElement("span");
+      const copyHint = document.createElement("div");
       copyHint.textContent = "Click to copy";
       copyHint.style.position = "absolute";
-      copyHint.style.right = "10px";
-      copyHint.style.fontSize = "0.7rem";
+      copyHint.style.top = "50%";
+      copyHint.style.left = "50%";
+      copyHint.style.transform = "translate(-50%, -50%)";
+      copyHint.style.fontSize = "0.9rem";
+      copyHint.style.fontWeight = "bold";
       copyHint.style.opacity = "0";
-      copyHint.style.color = "var(--text-secondary)";
+      copyHint.style.color = "var(--text-primary)";
       copyHint.style.transition = "opacity 0.2s ease";
+      copyHint.style.zIndex = "2";
       copyHint.className = "copy-hint";
 
       // Remove any existing copy hints
@@ -860,9 +870,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     aliasItem.addEventListener("mouseleave", () => {
+      // Don't reset styles if we're in the middle of a click action
+      if (aliasItem.classList.contains("being-clicked")) return;
+
       aliasItem.style.transform = "";
       aliasItem.style.boxShadow = "";
       aliasItem.style.borderColor = "var(--gray-medium)";
+
+      // Remove blur effect
+      textSpan.style.filter = "";
 
       // Remove copy hint
       const copyHint = aliasItem.querySelector(".copy-hint");
@@ -880,6 +896,15 @@ document.addEventListener("DOMContentLoaded", () => {
     aliasItem.addEventListener("click", () => {
       const aliasText = alias; // Get the actual alias text
 
+      // Add flag to prevent hover effects from interfering
+      aliasItem.classList.add("being-clicked");
+
+      // Add click animation
+      aliasItem.style.transform = "scale(0.95)";
+      setTimeout(() => {
+        aliasItem.style.transform = "translateY(-3px)";
+      }, 150);
+
       navigator.clipboard
         .writeText(aliasText)
         .then(() => {
@@ -888,13 +913,19 @@ document.addEventListener("DOMContentLoaded", () => {
           aliasItem.style.boxShadow = "var(--glow-accent)";
           aliasItem.style.borderColor = "var(--accent-color)";
 
+          // Unblur the text
+          textSpan.style.filter = "";
+
           // Create and add a checkmark icon
           const checkmark = document.createElement("span");
           checkmark.innerHTML = "✓";
           checkmark.style.position = "absolute";
-          checkmark.style.right = "10px";
+          checkmark.style.top = "50%";
+          checkmark.style.left = "50%";
+          checkmark.style.transform = "translate(-50%, -50%)";
           checkmark.style.color = "var(--accent-color)";
           checkmark.style.fontWeight = "bold";
+          checkmark.style.fontSize = "1.2rem";
           checkmark.className = "copied-checkmark";
 
           // Remove any existing copy hints or checkmarks
@@ -916,6 +947,10 @@ document.addEventListener("DOMContentLoaded", () => {
             aliasItem.style.backgroundColor = "var(--bg-card)";
             aliasItem.style.boxShadow = "";
             aliasItem.style.borderColor = "var(--gray-medium)";
+            aliasItem.style.transform = "";
+
+            // Remove the flag
+            aliasItem.classList.remove("being-clicked");
 
             // Remove checkmark with fade
             if (checkmark.parentNode === aliasItem) {
@@ -931,6 +966,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch((err) => {
           console.error("Could not copy text: ", err);
           showError("Failed to copy to clipboard");
+
+          // Reset transform even on error and remove flag
+          setTimeout(() => {
+            aliasItem.style.transform = "";
+            aliasItem.classList.remove("being-clicked");
+          }, 300);
         });
     });
 
@@ -1240,6 +1281,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Apply click animation to a button
+   * @param {HTMLElement} button - The button to apply animation to
+   */
+  function applyButtonClickAnimation(button) {
+    button.addEventListener("mousedown", function () {
+      this.style.transform = "scale(0.95)";
+      this.style.transition = "transform 0.1s ease";
+    });
+
+    button.addEventListener("mouseup", function () {
+      this.style.transform = "scale(1)";
+    });
+
+    button.addEventListener("mouseleave", function () {
+      this.style.transform = "scale(1)";
+    });
+  }
+
+  /**
+   * Apply click animations to all buttons
+   */
+  function initializeButtonAnimations() {
+    // Apply to all buttons in the document
+    const buttons = document.querySelectorAll(
+      'button:not([id="theme-toggle"])'
+    );
+    buttons.forEach((button) => {
+      applyButtonClickAnimation(button);
+    });
+  }
+
   // Initialize theme when page loads
   initializeTheme();
+
+  // Initialize button animations after DOM is fully loaded
+  initializeButtonAnimations();
 });

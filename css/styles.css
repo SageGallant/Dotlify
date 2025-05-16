@@ -238,8 +238,7 @@ html.dark-mode,
 
 /* Alias item styling */
 .alias-item {
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  cursor: pointer;
+  position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -249,6 +248,8 @@ html.dark-mode,
   background-color: var(--bg-card);
   border: 1px solid var(--gray-medium);
   color: var(--text-primary);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
 }
 
 .alias-item:hover {
@@ -256,12 +257,10 @@ html.dark-mode,
   transform: translateY(-3px);
   box-shadow: var(--glow-secondary);
   border-color: var(--secondary-color);
-  color: var(--primary-color);
 }
 
 .alias-item:active {
-  transform: translateY(-1px);
-  box-shadow: var(--glow-primary);
+  transform: scale(0.95) !important;
 }
 
 /* Toast animation */
@@ -1001,12 +1000,10 @@ button {
   transform: translateY(-3px);
   box-shadow: var(--glow-secondary);
   border-color: var(--secondary-color);
-  color: var(--primary-color);
 }
 
 .alias-item:active {
-  transform: translateY(-1px);
-  box-shadow: var(--glow-primary);
+  transform: scale(0.95) !important;
 }
 
 /* Enhanced button states for hover */
@@ -1952,4 +1949,14 @@ body:not(.dark-mode) #toast {
   transform: translateY(-3px);
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
   border-color: rgba(255, 246, 179, 0.8) !important;
+}
+
+/* Button click animations */
+button:not(#theme-toggle) {
+  transition: transform 0.1s ease, background-color 0.2s ease, color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+button:not(#theme-toggle):active {
+  transform: scale(0.95);
 }
